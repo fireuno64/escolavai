@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Escola Vai</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+        }
+
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .role-switch {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .role-switch label {
+            margin: 0 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .role-switch input[type="radio"] {
+            margin-right: 5px;
+        }
+
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 15px;
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        #message {
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+        <h2>Acesso ao Sistema</h2>
+
+        <div class="role-switch">
+            <label>
+                <input type="radio" name="role" value="client" checked> Sou Cliente
+            </label>
+            <label>
+                <input type="radio" name="role" value="admin"> Sou Administrador
+            </label>
+        </div>
+
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Seu E-mail" required>
+            <input type="password" id="password" placeholder="Sua Senha" required>
+            <button type="submit">Entrar</button>
+        </form>
+
+        <div id="message"></div>
+        <a href="landing.html" class="back-link">Voltar para Início</a>
+    </div>
+
+    <script>
+        const form = document.getElementById('loginForm');
+        const message = document.getElementById('message');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.querySelector('input[name="role"]:checked').value;
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    message.textContent = 'Login realizado com sucesso! Redirecionando...';
+                    message.className = 'success';
+
+                    // Armazenar dados do usuário para uso no dashboard
+                    localStorage.setItem('user', JSON.stringify(data.user));
+
+                    // Redirecionar baseado no papel
+                    setTimeout(() => {
+                        if (role === 'admin') {
+                            window.location.href = '/admin_dashboard.html'; // Painel Admin (Novo)
+                        } else {
+                            window.location.href = '/client_dashboard.html'; // Painel do Cliente
+                        }
+                    }, 1000);
+                } else {
+                    message.textContent = data.error || 'Erro ao fazer login.';
+                    message.className = 'error';
+                }
+            } catch (error) {
+                console.error(error);
+                message.textContent = 'Erro de conexão com o servidor.';
+                message.className = 'error';
+            }
+        });
+    </script>
+
+</body>
+
+</html>

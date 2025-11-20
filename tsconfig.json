@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    /* Configurações de Módulos Modernos (Cruciais para 'import' e Node.js) */
+    "module": "NodeNext",                   /* Essencial: Usa o sistema de resolução de módulos do Node.js moderno (ESM). */
+    "moduleResolution": "NodeNext",         /* Essencial: Define como o TS resolve caminhos (corrige o TS2307). */
+    "target": "ES2022",                     /* Define o target como uma versão moderna (pode ser "ES2020" ou superior). */
+    "esModuleInterop": true,                /* Permite importações de pacotes CommonJS de forma mais fácil. */
+
+    /* Configurações de Diretório */
+    "rootDir": "./src",                     /* Onde o código-fonte está. */
+    "outDir": "./dist",                     /* Onde os arquivos JavaScript compilados serão salvos. */
+    
+    /* Strictness e Tipagem */
+    "strict": true,                         /* Ativa todas as verificações de tipo estritas. */
+    "skipLibCheck": true,                   /* Ignora arquivos de declaração (.d.ts) para agilizar a compilação. */
+    "forceConsistentCasingInFileNames": true,
+    
+    /* Tipos e Bibliotecas */
+    "lib": ["ES2022"],                      /* Inclui bibliotecas padrão do JavaScript moderno. */
+    "types": ["node", "express", "mysql"]   /* Informa ao TS quais tipos de ambientes ele deve esperar. */
+  },
+  "include": ["src/**/*"],                  /* Diz ao TS para compilar todos os arquivos na pasta src. */
+  "exclude": ["node_modules"]               /* Exclui a pasta de dependências da compilação. */
+}

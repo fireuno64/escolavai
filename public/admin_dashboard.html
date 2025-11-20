@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escola Vai - Painel Administrativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338ca;
+            --secondary: #10B981;
+            --bg-dark: #111827;
+            --bg-card: #1F2937;
+            --text-light: #F3F4F6;
+            --text-gray: #9CA3AF;
+            --danger: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-card);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #374151;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 40px;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-gray);
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .logout {
+            margin-top: auto;
+            color: var(--danger);
+        }
+
+        .logout:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #374151;
+        }
+
+        .card h3 {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .card .value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .table-container {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #374151;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+
+        th {
+            color: var(--text-gray);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-paid {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #34D399;
+        }
+
+        .status-pending {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #FBBF24;
+        }
+
+        .status-late {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #F87171;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid #374151;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--text-gray);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-dark);
+            border: 1px solid #374151;
+            color: white;
+            border-radius: 6px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--text-gray);
+            border: 1px solid #374151;
+        }
+
+        .child-row {
+            background: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #374151;
+        }
+
+        .child-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="sidebar">
+        <div class="logo">🚌 Escola Vai</div>
+        <div class="nav-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
+        <div class="nav-item" onclick="showSection('responsaveis')">👥 Responsáveis</div>
+        <div class="nav-item" onclick="showSection('pagamentos')">💰 Pagamentos</div>
+        <div class="nav-item logout" onclick="logout()">🚪 Sair</div>
+    </nav>
+    <main class="main-content">
+        <header>
+            <h1 id="pageTitle">Dashboard</h1>
+            <div class="user-info"><span>Olá,
+                    Administrador</span>
+                <div class="avatar">A</div>
+            </div>
+        </header>
+        <div id="dashboard-section">
+            <div class="stats-grid">
+                <div class="card">
+                    <h3>Total de Responsáveis</h3>
+                    <div class="value" id="totalResponsaveis">0</div>
+                </div>
+                <div class="card">
+                    <h3>Pagamentos Pendentes</h3>
+                    <div class="value" id="totalPendentes">R$ 0,
+                        00</div>
+                </div>
+                <div class="card">
+                    <h3>Receita Mensal</h3>
+                    <div class="value" id="receitaMensal">R$ 0,
+                        00</div>
+                </div>
+            </div>
+        </div>
+        <div id="responsaveis-section" style="display: none;">
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Gerenciar Responsáveis</h2><button class="btn btn-primary"
+                        onclick="openNewResponsavelModal()">+Novo Responsável</button>
+                </div>
+                <table id="tableResponsaveis">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CPF</th>
+                            <th>Email</th>
+                            <th>Telefone</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <div id="pagamentos-section" style="display: none;">
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>Gerenciar Pagamentos</h2><button class="btn btn-primary"
+                        onclick="openModal('modalPagamento')">+Novo Pagamento</button>
+                </div>
+                <table id="tablePagamentos">
+                    <thead>
+                        <tr>
+                            <th>Responsável</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalResponsavel" class="modal">
+        <div class="modal-content">
+            <h2>Novo Responsável</h2>
+            <form id="formResponsavel">
+                <div class="form-group"><label>Nome *</label><input type="text" id="respNome" required></div>
+                <div class="form-group"><label>CPF *</label><input type="text" id="respCpf" maxlength="14"
+                        placeholder="000.000.000-00" required></div>
+                <div class="form-group"><label>Email *</label><input type="email" id="respEmail" required></div>
+                <div class="form-group"><label>Telefone *</label><input type="text" id="respTelefone" maxlength="15"
+                        placeholder="(00) 00000-0000" required></div>
+                <div class="form-group"><label>Endereço *</label><input type="text" id="respEndereco"
+                        placeholder="Rua, número, bairro, cidade" required></div>
+
+                <div class="form-group"><label>RG</label><input type="text" id="respRg" placeholder="00.000.000-0">
+                </div>
+                <div class="form-group"><label>Data Início Contrato *</label><input type="date" id="respDataInicio"
+                        required></div>
+                <div class="form-group"><label>Valor Contrato (Anual) *</label><input type="number"
+                        id="respValorContrato" step="0.01" required></div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #374151;">
+                <h3 style="margin-bottom: 15px; font-size: 1.1rem;">Crianças</h3>
+                <div id="childrenList" style="margin-bottom: 15px;"></div>
+                <button type="button" class="btn"
+                    style="background: var(--secondary); color: white; width: 100%; margin-bottom: 15px;"
+                    onclick="addChildRow()">+Adicionar Criança</button>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel"
+                        onclick="closeModal('modalResponsavel')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalPagamento" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <h2>Novo Pagamento</h2>
+            <form id="formPagamento">
+                <div class="form-group"><label>Responsável</label><select id="pagRespId" required></select></div>
+                <div class="form-group"><label>Valor (R$)</label><input type="number" id="pagValor" step="0.01"
+                        required></div>
+                <div class="form-group"><label>Status</label><select id="pagStatus">
+                        <option value="Pendente">Pendente</option>
+                        <option value="Pago">Pago</option>
+                        <option value="Atrasado">Atrasado</option>
+                    </select></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel"
+                        onclick="closeModal('modalPagamento')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin_script.js"></script>
+    <script src="chatbot.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,88 @@
+[2025-11-19T23:21:15.321Z] Erro no login: Error: Table 'escolavai_db.admin' doesn't exist
+    at PromisePool.execute (D:\ADS4NB\Transporte_Escolar_2025\node_modules\mysql2\lib\promise\pool.js:54:22)
+    at AuthController.login (file:///D:/ADS4NB/Transporte_Escolar_2025/src/controllers/AuthController.ts:15:49)
+    at file:///D:/ADS4NB/Transporte_Escolar_2025/src/routes/auth.routes.ts:6:48
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:117:3)
+    at handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:295:15
+    at processParams (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:582:12)
+[2025-11-19T23:21:42.518Z] Erro no login: Error: Table 'escolavai_db.admin' doesn't exist
+    at PromisePool.execute (D:\ADS4NB\Transporte_Escolar_2025\node_modules\mysql2\lib\promise\pool.js:54:22)
+    at AuthController.login (file:///D:/ADS4NB/Transporte_Escolar_2025/src/controllers/AuthController.ts:15:49)
+    at file:///D:/ADS4NB/Transporte_Escolar_2025/src/routes/auth.routes.ts:6:48
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:117:3)
+    at handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:295:15
+    at processParams (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:582:12)
+[2025-11-19T23:22:43.780Z] Erro no login: Error: Table 'escolavai_db.admin' doesn't exist
+    at PromisePool.execute (D:\ADS4NB\Transporte_Escolar_2025\node_modules\mysql2\lib\promise\pool.js:54:22)
+    at AuthController.login (file:///D:/ADS4NB/Transporte_Escolar_2025/src/controllers/AuthController.ts:15:49)
+    at file:///D:/ADS4NB/Transporte_Escolar_2025/src/routes/auth.routes.ts:6:48
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:117:3)
+    at handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:295:15
+    at processParams (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:582:12)
+[2025-11-19T23:23:46.101Z] Erro no login: Error: Table 'escolavai_db.admin' doesn't exist
+    at PromisePool.execute (D:\ADS4NB\Transporte_Escolar_2025\node_modules\mysql2\lib\promise\pool.js:54:22)
+    at AuthController.login (file:///D:/ADS4NB/Transporte_Escolar_2025/src/controllers/AuthController.ts:15:49)
+    at file:///D:/ADS4NB/Transporte_Escolar_2025/src/routes/auth.routes.ts:6:48
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:117:3)
+    at handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:295:15
+    at processParams (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:582:12)
+[2025-11-20T12:44:59.015Z] Erro Global: ReferenceError: __dirname is not defined
+    at ChatbotController.processMessage (file:///D:/ADS4NB/Transporte_Escolar_2025/src/controllers/ChatbotController.ts:11:41)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:117:3)
+    at handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:295:15
+    at processParams (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:582:12)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:291:5)
+    at router.handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:186:3)
+[2025-11-20T12:44:59.043Z] Erro Global: ReferenceError: __dirname is not defined
+    at ChatbotController.processMessage (file:///D:/ADS4NB/Transporte_Escolar_2025/src/controllers/ChatbotController.ts:11:41)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:117:3)
+    at handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:295:15
+    at processParams (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:582:12)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:291:5)
+    at router.handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:186:3)
+[2025-11-20T12:44:59.055Z] Erro Global: ReferenceError: __dirname is not defined
+    at ChatbotController.processMessage (file:///D:/ADS4NB/Transporte_Escolar_2025/src/controllers/ChatbotController.ts:11:41)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:117:3)
+    at handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:295:15
+    at processParams (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:582:12)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:291:5)
+    at router.handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:186:3)
+[2025-11-20T12:44:59.067Z] Erro Global: ReferenceError: __dirname is not defined
+    at ChatbotController.processMessage (file:///D:/ADS4NB/Transporte_Escolar_2025/src/controllers/ChatbotController.ts:11:41)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\route.js:117:3)
+    at handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\lib\layer.js:152:17)
+    at D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:295:15
+    at processParams (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:582:12)
+    at next (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:291:5)
+    at router.handle (D:\ADS4NB\Transporte_Escolar_2025\node_modules\router\index.js:186:3)
