@@ -13,13 +13,14 @@ interface ResponsavelDTO {
     valor_contrato?: number;
     data_inicio_contrato?: Date | string;
     rg?: string;
+    active?: boolean;
 }
 
 export class ResponsavelRepository {
 
-    async create(data: ResponsavelDTO) {
-        console.log('ResponsavelRepository.create - data:', data);
-        const query = 'INSERT INTO responsavel (nome, cpf, telefone, email, endereco, enderecoId, senha, valor_contrato, data_inicio_contrato, rg) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+    async create(data: ResponsavelDTO, adminId: number) {
+        console.log('ResponsavelRepository.create - data:', data, 'adminId:', adminId);
+        const query = 'INSERT INTO responsavel (nome, cpf, telefone, email, endereco, enderecoId, senha, rg, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
         const params = [
             data.nome,
             data.cpf,
@@ -28,50 +29,55 @@ export class ResponsavelRepository {
             data.endereco || null,
             data.enderecoId || null,
             data.senha,
-            data.valor_contrato || 0,
-            data.data_inicio_contrato || null,
-            data.rg || null
+            data.rg || null,
+            adminId
         ];
         console.log('ResponsavelRepository.create - params:', params);
         const [result] = await connection.query<ResultSetHeader>(query, params);
-        return { id: result.insertId, ...data };
+        return { id: result.insertId, ...data, adminId };
     }
 
-    async findAll() {
-        const query = 'SELECT * FROM responsavel';
-        const [rows] = await connection.query<RowDataPacket[]>(query);
+    async findAll(adminId: number) {
+        const query = 'SELECT * FROM responsavel WHERE admin_id = ?';
+        const [rows] = await connection.query<RowDataPacket[]>(query, [adminId]);
         return rows;
     }
 
-    async findById(id: number) {
-        const query = 'SELECT * FROM responsavel WHERE id = ?';
-        const [rows] = await connection.query<RowDataPacket[]>(query, [id]);
+    async findById(id: number, adminId: number) {
+        const query = 'SELECT * FROM responsavel WHERE id = ? AND admin_id = ?';
+        const [rows] = await connection.query<RowDataPacket[]>(query, [id, adminId]);
         return rows[0];
     }
 
-    async update(id: number, data: Partial<ResponsavelDTO>) {
+    async update(id: number, data: Partial<ResponsavelDTO>, adminId: number) {
         const fields = Object.keys(data).map(key => `${key} = ?`).join(', ');
         const values = Object.values(data);
 
-        if (fields.length === 0) return this.findById(id);
+        if (fields.length === 0) return this.findById(id, adminId);
 
-        const query = `UPDATE responsavel SET ${fields} WHERE id = ?`;
-        await connection.query(query, [...values, id]);
+        const query = `UPDATE responsavel SET ${fields} WHERE id = ? AND admin_id = ?`;
+        await connection.query(query, [...values, id, adminId]);
 
-        return this.findById(id);
+        return this.findById(id, adminId);
     }
 
-    async delete(id: number) {
-        console.log('ResponsavelRepository.delete - Deleting ID:', id);
-        const query = 'DELETE FROM responsavel WHERE id = ?';
-        const [result] = await connection.query<ResultSetHeader>(query, [id]);
+    async delete(id: number, adminId: number) {
+        console.log('ResponsavelRepository.delete - Deleting ID:', id, 'adminId:', adminId);
+        const query = 'DELETE FROM responsavel WHERE id = ? AND admin_id = ?';
+        const [result] = await connection.query<ResultSetHeader>(query, [id, adminId]);
         console.log('ResponsavelRepository.delete - Rows affected:', result.affectedRows);
-        return true;
+        return result.affectedRows > 0;
     }
 
-    async findByCpf(cpf: string) {
-        const query = 'SELECT * FROM responsavel WHERE cpf = ?';
-        const [rows] = await connection.query<RowDataPacket[]>(query, [cpf]);
+    async findByCpf(cpf: string, adminId: number) {
+        const query = 'SELECT * FROM responsavel WHERE cpf = ? AND admin_id = ?';
+        const [rows] = await connection.query<RowDataPacket[]>(query, [cpf, adminId]);
+        return rows[0];
+    }
+
+    async findByEmail(email: string, adminId: number) {
+        const query = 'SELECT * FROM responsavel WHERE email = ? AND admin_id = ?';
+        const [rows] = await connection.query<RowDataPacket[]>(query, [email, adminId]);
         return rows[0];
     }
 }

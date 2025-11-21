@@ -6,299 +6,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escola Vai - Painel Administrativo</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4F46E5;
-            --primary-dark: #4338ca;
-            --secondary: #10B981;
-            --bg-dark: #111827;
-            --bg-card: #1F2937;
-            --text-light: #F3F4F6;
-            --text-gray: #9CA3AF;
-            --danger: #EF4444;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 260px;
-            background-color: var(--bg-card);
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #374151;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 40px;
-        }
-
-        .nav-item {
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            cursor: pointer;
-            color: var(--text-gray);
-            transition: all 0.3s;
-        }
-
-        .nav-item:hover,
-        .nav-item.active {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .logout {
-            margin-top: auto;
-            color: var(--danger);
-        }
-
-        .logout:hover {
-            background-color: rgba(239, 68, 68, 0.1);
-        }
-
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .card {
-            background-color: var(--bg-card);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid #374151;
-        }
-
-        .card h3 {
-            color: var(--text-gray);
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-        }
-
-        .card .value {
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .table-container {
-            background-color: var(--bg-card);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #374151;
-        }
-
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            transition: 0.3s;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-dark);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th,
-        td {
-            padding: 16px;
-            text-align: left;
-            border-bottom: 1px solid #374151;
-        }
-
-        th {
-            color: var(--text-gray);
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        tr:hover {
-            background-color: rgba(255, 255, 255, 0.02);
-        }
-
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .status-paid {
-            background-color: rgba(16, 185, 129, 0.2);
-            color: #34D399;
-        }
-
-        .status-pending {
-            background-color: rgba(245, 158, 11, 0.2);
-            color: #FBBF24;
-        }
-
-        .status-late {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #F87171;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: var(--bg-card);
-            padding: 30px;
-            border-radius: 12px;
-            width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            border: 1px solid #374151;
-        }
-
-        .modal-content h2 {
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: var(--text-gray);
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            background: var(--bg-dark);
-            border: 1px solid #374151;
-            color: white;
-            border-radius: 6px;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .btn-cancel {
-            background: transparent;
-            color: var(--text-gray);
-            border: 1px solid #374151;
-        }
-
-        .child-row {
-            background: var(--bg-dark);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #374151;
-        }
-
-        .child-row-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
+</head>
 </head>
 
 <body>
     <nav class="sidebar">
-        <div class="logo">🚌 Escola Vai</div>
+        <div class="logo">
+            <img src="images/logo.png" alt="Escola Vai Logo">
+        </div>
         <div class="nav-item active" onclick="showSection('dashboard')">📊 Dashboard</div>
-        <div class="nav-item" onclick="showSection('responsaveis')">👥 Responsáveis</div>
-        <div class="nav-item" onclick="showSection('pagamentos')">💰 Pagamentos</div>
+        <div class="nav-item" id="nav-responsaveis" onclick="showSection('responsaveis')">👥 Responsáveis</div>
+        <div class="nav-item" id="nav-pagamentos" onclick="showSection('pagamentos')">💰 Pagamentos</div>
         <div class="nav-item logout" onclick="logout()">🚪 Sair</div>
     </nav>
     <main class="main-content">
         <header>
             <h1 id="pageTitle">Dashboard</h1>
-            <div class="user-info"><span>Olá,
-                    Administrador</span>
-                <div class="avatar">A</div>
+            <div class="user-info">
+                <span id="headerUserName">Olá, Administrador</span>
+                <div class="avatar" onclick="openModal('modalPerfil')" style="cursor: pointer;" title="Meu Perfil">A
+                </div>
             </div>
         </header>
         <div id="dashboard-section">
@@ -332,6 +60,7 @@
                             <th>CPF</th>
                             <th>Email</th>
                             <th>Telefone</th>
+                            <th>Contrato</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -345,6 +74,43 @@
                     <h2>Gerenciar Pagamentos</h2><button class="btn btn-primary"
                         onclick="openModal('modalPagamento')">+Novo Pagamento</button>
                 </div>
+
+                <!-- Filters Section -->
+                <div
+                    style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #374151;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.85rem; margin-bottom: 5px;">Responsável</label>
+                            <input type="text" id="filterResponsavel" placeholder="Buscar por nome..."
+                                style="padding: 8px; font-size: 0.9rem;" oninput="applyPagamentoFilters()">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.85rem; margin-bottom: 5px;">Status</label>
+                            <select id="filterStatus" style="padding: 8px; font-size: 0.9rem;"
+                                onchange="applyPagamentoFilters()">
+                                <option value="">Todos</option>
+                                <option value="Pendente">Pendente</option>
+                                <option value="Pago">Pago</option>
+                                <option value="Atrasado">Atrasado</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.85rem; margin-bottom: 5px;">Data Inicial</label>
+                            <input type="date" id="filterDataInicio" style="padding: 8px; font-size: 0.9rem;"
+                                onchange="applyPagamentoFilters()">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size: 0.85rem; margin-bottom: 5px;">Data Final</label>
+                            <input type="date" id="filterDataFim" style="padding: 8px; font-size: 0.9rem;"
+                                onchange="applyPagamentoFilters()">
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <button class="btn" onclick="clearPagamentoFilters()"
+                                style="padding: 8px 16px; background: #374151; width: 100%;">Limpar Filtros</button>
+                        </div>
+                    </div>
+                </div>
+
                 <table id="tablePagamentos">
                     <thead>
                         <tr>
@@ -359,6 +125,7 @@
                 </table>
             </div>
         </div>
+
     </main>
 
     <div id="modalResponsavel" class="modal">
@@ -374,23 +141,47 @@
                 <div class="form-group"><label>Endereço *</label><input type="text" id="respEndereco"
                         placeholder="Rua, número, bairro, cidade" required></div>
 
+                <div class="form-group"><label>Senha</label><input type="password" id="respSenha"
+                        placeholder="Deixe em branco para manter a atual"></div>
+
                 <div class="form-group"><label>RG</label><input type="text" id="respRg" placeholder="00.000.000-0">
                 </div>
-                <div class="form-group"><label>Data Início Contrato *</label><input type="date" id="respDataInicio"
-                        required></div>
-                <div class="form-group"><label>Valor Contrato (Anual) *</label><input type="number"
-                        id="respValorContrato" step="0.01" required></div>
+                <!-- Contract fields removed from here, moved to children -->
 
                 <hr style="margin: 20px 0; border: none; border-top: 1px solid #374151;">
                 <h3 style="margin-bottom: 15px; font-size: 1.1rem;">Crianças</h3>
-                <div id="childrenList" style="margin-bottom: 15px;"></div>
+
+                <!-- Children List View -->
+                <div id="childrenListView" style="margin-bottom: 15px;">
+                    <!-- Children will be listed here -->
+                </div>
+
+                <!-- Child Form (hidden by default) -->
+                <div id="childFormContainer"
+                    style="display: none; margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid #374151;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 id="childFormTitle" style="margin: 0;">Nova Criança</h4>
+                        <button type="button" class="btn" style="padding: 4px 12px; background: var(--danger);"
+                            onclick="cancelChildForm()">Cancelar</button>
+                    </div>
+                    <div id="childFormFields">
+                        <!-- Form fields will be inserted here -->
+                    </div>
+                    <button type="button" class="btn btn-primary" style="width: 100%;" onclick="saveChildForm()">Salvar
+                        Criança</button>
+                </div>
+
                 <button type="button" class="btn"
                     style="background: var(--secondary); color: white; width: 100%; margin-bottom: 15px;"
-                    onclick="addChildRow()">+Adicionar Criança</button>
+                    onclick="showChildForm()">+ Adicionar Criança</button>
 
                 <div class="modal-actions">
                     <button type="button" class="btn btn-cancel"
                         onclick="closeModal('modalResponsavel')">Cancelar</button>
+                    <button type="button" id="btnPrintContract" class="btn"
+                        style="background-color: #6366f1; color: white; display: none; margin-right: 10px;"
+                        onclick="printContractFromModal()">🖨️ Contrato</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
             </form>
@@ -413,6 +204,23 @@
                     <button type="button" class="btn btn-cancel"
                         onclick="closeModal('modalPagamento')">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
+
+    <div id="modalPerfil" class="modal">
+        <div class="modal-content">
+            <h2>Meu Perfil</h2>
+            <form id="formPerfil">
+                <div class="form-group"><label>Nome</label><input type="text" id="perfilNome" required></div>
+                <div class="form-group"><label>Email</label><input type="email" id="perfilEmail" required></div>
+                <div class="form-group"><label>Nova Senha (deixe em branco para manter)</label><input type="password"
+                        id="perfilSenha"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeModal('modalPerfil')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
                 </div>
             </form>
         </div>

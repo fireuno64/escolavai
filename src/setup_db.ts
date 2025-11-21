@@ -1,4 +1,4 @@
-import connection from './db.js';
+import connection from './db';
 
 async function setup() {
     try {
@@ -53,7 +53,13 @@ async function setup() {
             { query: `ALTER TABLE responsavel ADD COLUMN endereco VARCHAR(255) AFTER email`, msg: 'endereco' },
             { query: `ALTER TABLE responsavel ADD COLUMN valor_contrato DECIMAL(10, 2) DEFAULT 0.00`, msg: 'valor_contrato' },
             { query: `ALTER TABLE responsavel ADD COLUMN data_inicio_contrato DATE NULL`, msg: 'data_inicio_contrato' },
-            { query: `ALTER TABLE responsavel ADD COLUMN rg VARCHAR(20) NULL`, msg: 'rg' }
+            { query: `ALTER TABLE responsavel ADD COLUMN rg VARCHAR(20) NULL`, msg: 'rg' },
+            { query: `ALTER TABLE responsavel ADD COLUMN admin_id INT NULL`, msg: 'admin_id' },
+            { query: `ALTER TABLE crianca ADD COLUMN data_inicio_contrato DATE NULL`, msg: 'crianca.data_inicio_contrato' },
+            { query: `ALTER TABLE crianca ADD COLUMN valor_contrato_anual DECIMAL(10, 2) DEFAULT 0.00`, msg: 'crianca.valor_contrato_anual' },
+            { query: `ALTER TABLE crianca ADD COLUMN valor_contrato_anual DECIMAL(10, 2) DEFAULT 0.00`, msg: 'crianca.valor_contrato_anual' },
+            { query: `ALTER TABLE admin ADD COLUMN active BOOLEAN DEFAULT TRUE`, msg: 'admin.active' },
+            { query: `ALTER TABLE responsavel ADD COLUMN active BOOLEAN DEFAULT TRUE`, msg: 'responsavel.active' }
         ];
 
         for (const cmd of alterCommands) {

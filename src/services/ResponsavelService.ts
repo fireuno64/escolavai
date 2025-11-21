@@ -16,39 +16,65 @@ interface ResponsavelInput {
     valor_contrato?: number;
     data_inicio_contrato?: Date | string;
     rg?: string;
+    active?: boolean;
 }
 
 export class ResponsavelService {
 
-    async createResponsavel(data: ResponsavelInput) {
+    async createResponsavel(data: ResponsavelInput, adminId: number) {
         // Exemplo de regra de negócio: Checar se o CPF tem o formato correto
         if (!data.cpf || data.cpf.length < 11) {
             throw new Error("CPF inválido.");
         }
-        return repository.create(data as any); // Cast to any to avoid strict type mismatch if DTO differs slightly
+
+        if (data.email) {
+            const existingEmail = await repository.findByEmail(data.email, adminId);
+            if (existingEmail) {
+                throw new Error("Email já cadastrado.");
+            }
+        }
+
+        // Check if CPF already exists for this admin
+        const existingCpf = await repository.findByCpf(data.cpf, adminId);
+        if (existingCpf) {
+            throw new Error("CPF já cadastrado no sistema.");
+        }
+
+        return repository.create(data as any, adminId);
     }
 
-    async getResponsaveis() {
-        return repository.findAll();
+    async getResponsaveis(adminId: number) {
+        return repository.findAll(adminId);
     }
 
-    async getResponsavelById(id: number) {
-        const responsavel = await repository.findById(id);
+    async getResponsavelById(id: number, adminId: number) {
+        const responsavel = await repository.findById(id, adminId);
         if (!responsavel) {
             throw new Error("Responsável não encontrado.");
         }
         return responsavel;
     }
 
-    async getResponsavelByCpf(cpf: string) {
-        return repository.findByCpf(cpf);
+    async getResponsavelByCpf(cpf: string, adminId: number) {
+        return repository.findByCpf(cpf, adminId);
     }
 
-    async updateResponsavel(id: number, data: Partial<ResponsavelInput>) {
-        return repository.update(id, data);
+    async updateResponsavel(id: number, data: Partial<ResponsavelInput>, adminId: number) {
+        return repository.update(id, data, adminId);
     }
 
-    async deleteResponsavel(id: number) {
-        return repository.delete(id);
+    async deleteResponsavel(id: number, adminId: number) {
+        return repository.delete(id, adminId);
+    }
+
+    async toggleActive(id: number, adminId: number) {
+        const responsavel = await repository.findById(id, adminId);
+        if (!responsavel) {
+            throw new Error("Responsável não encontrado.");
+        }
+
+        const newStatus = !responsavel.active;
+        await repository.update(id, { active: newStatus }, adminId);
+        return newStatus;
     }
 }

@@ -8,27 +8,34 @@ export class ResponsavelController {
 
     async create(req: Request, res: Response) {
         try {
-            const { nome, cpf, telefone, email, endereco, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
+            // Use adminId from user. If not authenticated, this should fail or be handled by middleware.
+            const adminId = (req as any).user?.id;
+            console.log('ResponsavelController.create - Authenticated User ID:', adminId);
 
-            if (!nome || !cpf || !senha) {
-                return res.status(400).json({ error: 'Nome, CPF e senha são obrigatórios' });
+            if (!adminId) {
+                return res.status(401).json({ error: 'Usuário não autenticado.' });
             }
 
-            if (!data_inicio_contrato) {
-                return res.status(400).json({ error: 'Data de início do contrato é obrigatória' });
+            const { nome, cpf, telefone, email, endereco, enderecoId, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
+
+            console.log('ResponsavelController.create - Request body:', req.body);
+
+            if (!nome || !cpf) {
+                return res.status(400).json({ error: 'Nome e CPF são obrigatórios' });
             }
 
-            if (!valor_contrato) {
-                return res.status(400).json({ error: 'Valor do contrato é obrigatório' });
-            }
+            // Contract fields are now optional on parent (moved to children)
+            // if (!data_inicio_contrato) { ... }
+            // if (!valor_contrato) { ... }
 
-            // Check if CPF already exists
-            const existingResponsavel = await service.getResponsavelByCpf(cpf);
-            if (existingResponsavel) {
-                return res.status(400).json({ error: 'CPF já cadastrado no sistema' });
-            }
+            // Check if CPF already exists (Service now handles adminId check)
+            // const existingResponsavel = await service.getResponsavelByCpf(cpf, adminId);
+            // if (existingResponsavel) {
+            //     return res.status(400).json({ error: 'CPF já cadastrado no sistema' });
+            // }
 
-            const hashedPassword = await bcrypt.hash(senha, 10);
+            // Hash password if provided, otherwise use default
+            const hashedPassword = senha ? await bcrypt.hash(senha, 10) : await bcrypt.hash('senha123', 10);
 
             const responsavel = await service.createResponsavel({
                 nome,
@@ -38,20 +45,22 @@ export class ResponsavelController {
                 endereco,
                 enderecoId: 1,
                 senha: hashedPassword,
-                valor_contrato: parseFloat(valor_contrato),
-                data_inicio_contrato,
                 rg
-            });
+            }, adminId);
 
+            console.log('ResponsavelController.create - Created responsavel:', responsavel);
             return res.status(201).json(responsavel);
         } catch (error: any) {
+            console.error('ResponsavelController.create - Error:', error);
             return res.status(400).json({ error: 'Erro ao criar responsável: ' + error.message });
         }
     }
 
     async findAll(req: Request, res: Response) {
         try {
-            const responsaveis = await service.getResponsaveis();
+            const adminId = (req as any).user?.id;
+            if (!adminId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+            const responsaveis = await service.getResponsaveis(adminId);
             return res.status(200).json(responsaveis);
         } catch (error) {
             console.error('Erro no findAll:', error);
@@ -62,7 +71,9 @@ export class ResponsavelController {
     async findById(req: Request, res: Response) {
         try {
             const id = parseInt(req.params.id);
-            const responsavel = await service.getResponsavelById(id);
+            const adminId = (req as any).user?.id;
+            if (!adminId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+            const responsavel = await service.getResponsavelById(id, adminId);
             return res.status(200).json(responsavel);
         } catch (error: any) {
             if (error.message.includes("não encontrado")) {
@@ -75,7 +86,27 @@ export class ResponsavelController {
     async update(req: Request, res: Response) {
         try {
             const id = parseInt(req.params.id);
-            const responsavelAtualizado = await service.updateResponsavel(id, req.body);
+            const adminId = (req as any).user?.id;
+            if (!adminId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+            const { nome, cpf, telefone, email, endereco, enderecoId, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
+
+            const dataToUpdate: any = {
+                nome,
+                cpf,
+                telefone,
+                email,
+                endereco,
+                enderecoId,
+                valor_contrato,
+                data_inicio_contrato,
+                rg
+            };
+
+            if (senha) {
+                dataToUpdate.senha = await bcrypt.hash(senha, 10);
+            }
+
+            const responsavelAtualizado = await service.updateResponsavel(id, dataToUpdate, adminId);
             return res.status(200).json(responsavelAtualizado);
         } catch (error) {
             return res.status(500).json({ error: 'Erro ao atualizar responsável.' });
@@ -85,10 +116,31 @@ export class ResponsavelController {
     async delete(req: Request, res: Response) {
         try {
             const id = parseInt(req.params.id);
-            await service.deleteResponsavel(id);
+            const adminId = (req as any).user?.id;
+            if (!adminId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+            await service.deleteResponsavel(id, adminId);
             return res.status(204).send();
         } catch (error) {
             return res.status(500).json({ error: 'Erro ao deletar responsável.' });
+        }
+    }
+
+    async toggleActive(req: Request, res: Response) {
+        try {
+            const id = parseInt(req.params.id);
+            const adminId = (req as any).user?.id;
+            if (!adminId) return res.status(401).json({ error: 'Usuário não autenticado.' });
+
+            // We can use the service or direct connection. 
+            // Since we haven't added toggleActive to service, let's add it there or use direct connection.
+            // To keep it clean, let's assume we will add it to service or use a direct query here if we import connection.
+            // But we don't have connection imported. Let's use the service.
+            // I will add toggleActive to ResponsavelService in the next step.
+
+            const newState = await service.toggleActive(id, adminId);
+            return res.status(200).json({ message: `Responsável ${newState ? 'ativado' : 'desativado'} com sucesso.`, active: newState });
+        } catch (error: any) {
+            return res.status(500).json({ error: 'Erro ao alterar status do responsável: ' + error.message });
         }
     }
 }

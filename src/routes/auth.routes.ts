@@ -4,8 +4,9 @@ import { Router } from 'express';
 import { AuthController } from '../controllers/AuthController.js';
 
 const router = Router();
-const controller = new AuthController();
+const authController = new AuthController();
 
-router.post('/login', (req, res) => controller.login(req, res));
+router.post('/login', authController.login);
+router.put('/profile', authController.updateProfile);
 
 export default router;

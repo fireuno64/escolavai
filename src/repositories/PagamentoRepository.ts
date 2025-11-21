@@ -12,42 +12,51 @@ export interface PagamentoDTO {
 
 export class PagamentoRepository {
 
-    async create(data: PagamentoDTO) {
-        const query = 'INSERT INTO pagamento (responsavelId, valor, dataPagamento, status) VALUES (?, ?, ?, ?)';
+    async create(data: PagamentoDTO, adminId: number) {
+        const query = 'INSERT INTO pagamento (responsavelId, valor, dataPagamento, status, admin_id) VALUES (?, ?, ?, ?, ?)';
         const [result] = await connection.execute<ResultSetHeader>(query, [
             data.responsavelId,
             data.valor,
             data.dataPagamento || new Date(),
-            data.status || 'Pendente'
+            data.status || 'Pendente',
+            adminId
         ]);
-        return { id: result.insertId, ...data };
+        return { id: result.insertId, ...data, adminId };
     }
 
-    async findAll() {
-        const query = 'SELECT * FROM pagamento';
-        const [rows] = await connection.execute<RowDataPacket[]>(query);
+    async findAll(adminId: number) {
+        const query = 'SELECT * FROM pagamento WHERE admin_id = ?';
+        const [rows] = await connection.execute<RowDataPacket[]>(query, [adminId]);
         return rows;
     }
 
-    async findById(id: number) {
-        const query = 'SELECT * FROM pagamento WHERE id = ?';
-        const [rows] = await connection.execute<RowDataPacket[]>(query, [id]);
+    async findById(id: number, adminId: number) {
+        const query = 'SELECT * FROM pagamento WHERE id = ? AND admin_id = ?';
+        const [rows] = await connection.execute<RowDataPacket[]>(query, [id, adminId]);
         return rows[0];
     }
 
-    async update(id: number, data: Partial<PagamentoDTO>) {
+    async findByResponsavel(responsavelId: number) {
+        const query = 'SELECT * FROM pagamento WHERE responsavelId = ? ORDER BY dataPagamento DESC';
+        const [rows] = await connection.execute<RowDataPacket[]>(query, [responsavelId]);
+        return rows;
+    }
+
+    async update(id: number, data: Partial<PagamentoDTO>, adminId: number) {
         const fields = Object.keys(data).map(key => `${key} = ?`).join(', ');
         const values = Object.values(data);
 
-        const query = `UPDATE pagamento SET ${fields} WHERE id = ?`;
-        await connection.execute(query, [...values, id]);
+        if (fields.length === 0) return this.findById(id, adminId);
 
-        return this.findById(id);
+        const query = `UPDATE pagamento SET ${fields} WHERE id = ? AND admin_id = ?`;
+        await connection.execute(query, [...values, id, adminId]);
+
+        return this.findById(id, adminId);
     }
 
-    async delete(id: number) {
-        const query = 'DELETE FROM pagamento WHERE id = ?';
-        await connection.execute(query, [id]);
-        return true;
+    async delete(id: number, adminId: number) {
+        const query = 'DELETE FROM pagamento WHERE id = ? AND admin_id = ?';
+        const [result] = await connection.execute<ResultSetHeader>(query, [id, adminId]);
+        return result.affectedRows > 0;
     }
 }

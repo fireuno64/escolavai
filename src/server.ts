@@ -11,6 +11,8 @@ import pagamentoRoutes from './routes/pagamento.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import chatbotRoutes from './routes/chatbot.routes.js';
 import criancaRoutes from './routes/crianca.routes.js';
+import adminUsersRoutes from './routes/adminUsers.routes.js';
+import contractRoutes from './routes/contract.routes.js';
 
 const app = express();
 const PORT = 3000;
@@ -25,7 +27,8 @@ app.use('/api/pagamentos', pagamentoRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api', chatbotRoutes);
 app.use('/api/criancas', criancaRoutes);
-
+app.use('/api/admin-users', adminUsersRoutes);
+app.use('/api/contracts', contractRoutes);
 // Rota de teste
 app.get('/', (req, res) => {
   res.send('API Escola Vai funcionando!');

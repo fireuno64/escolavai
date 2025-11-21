@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escola Vai - Sobre Nós</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fredoka:wght@600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #818cf8;
+            --primary-dark: #4338ca;
+            --secondary: #10B981;
+            --bg-dark: #111827;
+            --bg-card: rgba(31, 41, 55, 0.7);
+            --text-light: #F3F4F6;
+            --text-gray: #9CA3AF;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(17, 24, 39, 0.7);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(79, 70, 229, 0.08) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.05) 0%, transparent 25%);
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 1000;
+            padding: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: transform 0.3s;
+        }
+
+        .logo:hover {
+            transform: scale(1.02);
+        }
+
+        .logo img {
+            height: 45px;
+            width: auto;
+            filter: drop-shadow(0 0 8px rgba(79, 70, 229, 0.3));
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-gray);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-light);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: var(--primary);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+            filter: brightness(1.1);
+        }
+
+        /* Main Content */
+        main {
+            padding-top: 120px;
+            padding-bottom: 80px;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding-left: 40px;
+            padding-right: 40px;
+        }
+
+        .about-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .about-header h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, #9CA3AF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .about-header p {
+            font-size: 1.2rem;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .content-block {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 60px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(20px);
+        }
+
+        .content-block h2 {
+            font-size: 2rem;
+            margin-bottom: 24px;
+            color: var(--text-light);
+        }
+
+        .content-block p {
+            color: var(--text-gray);
+            line-height: 1.8;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .content-block p:last-child {
+            margin-bottom: 0;
+        }
+
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .value-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .value-card h3 {
+            color: var(--primary-light);
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+
+        .value-card p {
+            font-size: 1rem;
+            margin-bottom: 0;
+        }
+
+        /* Footer */
+        footer {
+            background: #0f131f;
+            padding: 60px 40px;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        footer p {
+            color: var(--text-gray);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html" style="text-decoration: none; display: flex; align-items: center; gap: 12px;">
+                    <img src="assets/logo.png" alt="Escola Vai Logo">
+                </a>
+            </div>
+            <div class="nav-links">
+                <a href="index.html#features">Recursos</a>
+                <a href="about.html" style="color: var(--text-light);">Sobre</a>
+                <a href="login.html" class="btn btn-primary">Acessar Sistema</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="about-header">
+            <h1>Sobre a Escola Vai</h1>
+            <p>Transformando o transporte escolar com tecnologia, segurança e transparência para pais e transportadores.
+            </p>
+        </div>
+
+        <div class="content-block">
+            <h2>Nossa Missão</h2>
+            <p>A Escola Vai nasceu da necessidade de modernizar um serviço essencial. Entendemos que o transporte
+                escolar carrega o bem mais precioso das famílias: suas crianças. Por isso, nossa missão é oferecer uma
+                plataforma que garanta segurança, eficiência e tranquilidade para todos os envolvidos.</p>
+            <p>Acreditamos que a tecnologia pode simplificar processos, eliminar papelada e criar uma comunicação mais
+                fluida entre pais e transportadores, permitindo que estes foquem no que realmente importa: o transporte
+                seguro dos alunos.</p>
+        </div>
+
+        <div class="content-block">
+            <h2>Nossos Valores</h2>
+            <div class="values-grid">
+                <div class="value-card">
+                    <h3>Segurança em Primeiro Lugar</h3>
+                    <p>Cada funcionalidade é pensada para aumentar a segurança das crianças e a confiabilidade do
+                        serviço.</p>
+                </div>
+                <div class="value-card">
+                    <h3>Transparência</h3>
+                    <p>Comunicação clara e dados acessíveis para pais e transportadores, sem letras miúdas.</p>
+                </div>
+                <div class="value-card">
+                    <h3>Inovação Contínua</h3>
+                    <p>Estamos sempre evoluindo nossa plataforma para atender às novas demandas do mercado.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Escola Vai. Todos os direitos reservados.</p>
+    </footer>
+</body>
+
+</html>

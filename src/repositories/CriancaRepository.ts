@@ -8,28 +8,36 @@ interface CriancaDTO {
     horario?: string;
     horarioEntrada?: string;
     horarioSaida?: string;
+    tipoTransporte?: 'ida_volta' | 'so_ida' | 'so_volta';
     responsavelId: number;
+    dataInicioContrato?: Date | string;
+    valorContratoAnual?: number;
 }
 
 export class CriancaRepository {
 
-    async create(data: CriancaDTO) {
-        const query = 'INSERT INTO crianca (nome, escola, horario, horario_entrada, horario_saida, responsavel_id) VALUES (?, ?, ?, ?, ?, ?)';
+    async create(data: CriancaDTO, adminId: number) {
+        // Verify if responsavel belongs to admin
+        const [respRows] = await connection.query<RowDataPacket[]>('SELECT * FROM responsavel WHERE id = ? AND admin_id = ?', [data.responsavelId, adminId]);
+        if (respRows.length === 0) {
+            throw new Error("Responsável não encontrado ou não pertence a este administrador.");
+        }
+
+        const query = 'INSERT INTO crianca (nome, escola, horario, horario_entrada, horario_saida, tipo_transporte, responsavel_id, data_inicio_contrato, valor_contrato_anual) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
         const params = [
             data.nome,
             data.escola,
             data.horario || null,
             data.horarioEntrada || null,
             data.horarioSaida || null,
-            data.responsavelId
+            data.tipoTransporte || 'ida_volta',
+            data.responsavelId,
+            data.dataInicioContrato || null,
+            data.valorContratoAnual || 0
         ];
         console.log('CriancaRepository.create params:', params);
 
         try {
-            // Verify responsavel exists using shared connection
-            const [respRows] = await connection.query<RowDataPacket[]>('SELECT * FROM responsavel WHERE id = ?', [data.responsavelId]);
-            console.log('Responsavel check (shared conn):', respRows.length > 0 ? 'Found' : 'Not Found');
-
             const [result] = await connection.query<ResultSetHeader>(query, params);
             return { id: result.insertId, ...data };
         } catch (error: any) {
@@ -38,39 +46,80 @@ export class CriancaRepository {
         }
     }
 
-    async findAll() {
-        const query = 'SELECT * FROM crianca';
-        const [rows] = await connection.query<RowDataPacket[]>(query);
+    async findAll(adminId: number) {
+        const query = `
+            SELECT c.* 
+            FROM crianca c
+            JOIN responsavel r ON c.responsavel_id = r.id
+            WHERE r.admin_id = ?
+        `;
+        const [rows] = await connection.query<RowDataPacket[]>(query, [adminId]);
         return rows;
     }
 
-    async findByResponsavelId(responsavelId: number) {
-        const query = 'SELECT * FROM crianca WHERE responsavel_id = ?';
-        const [rows] = await connection.query<RowDataPacket[]>(query, [responsavelId]);
+    async findByResponsavelId(responsavelId: number, adminId: number) {
+        const query = `
+            SELECT c.* 
+            FROM crianca c
+            JOIN responsavel r ON c.responsavel_id = r.id
+            WHERE c.responsavel_id = ? AND r.admin_id = ?
+        `;
+        const [rows] = await connection.query<RowDataPacket[]>(query, [responsavelId, adminId]);
         return rows;
     }
 
-    async findById(id: number) {
-        const query = 'SELECT * FROM crianca WHERE id = ?';
-        const [rows] = await connection.query<RowDataPacket[]>(query, [id]);
+    async findById(id: number, adminId: number) {
+        const query = `
+            SELECT c.* 
+            FROM crianca c
+            JOIN responsavel r ON c.responsavel_id = r.id
+            WHERE c.id = ? AND r.admin_id = ?
+        `;
+        const [rows] = await connection.query<RowDataPacket[]>(query, [id, adminId]);
         return rows[0];
     }
 
-    async update(id: number, data: Partial<CriancaDTO>) {
-        const fields = Object.keys(data).map(key => `${key} = ?`).join(', ');
-        const values = Object.values(data);
+    async update(id: number, data: Partial<CriancaDTO>, adminId: number) {
+        // First check if the child exists and belongs to admin
+        const existing = await this.findById(id, adminId);
+        if (!existing) return null;
 
-        if (fields.length === 0) return this.findById(id);
+        // Map camelCase to snake_case for database columns
+        const columnMap: Record<string, string> = {
+            'nome': 'nome',
+            'escola': 'escola',
+            'horario': 'horario',
+            'horarioEntrada': 'horario_entrada',
+            'horarioSaida': 'horario_saida',
+            'tipoTransporte': 'tipo_transporte',
+            'responsavelId': 'responsavel_id',
+            'dataInicioContrato': 'data_inicio_contrato',
+            'valorContratoAnual': 'valor_contrato_anual'
+        };
 
-        const query = `UPDATE crianca SET ${fields} WHERE id = ?`;
+        const fields: string[] = [];
+        const values: any[] = [];
+
+        Object.keys(data).forEach(key => {
+            const dbColumn = columnMap[key] || key;
+            fields.push(`${dbColumn} = ?`);
+            values.push((data as any)[key]);
+        });
+
+        if (fields.length === 0) return existing;
+
+        const query = `UPDATE crianca SET ${fields.join(', ')} WHERE id = ?`;
         await connection.query(query, [...values, id]);
 
         // Return the updated record
-        const updated = await this.findById(id);
-        return updated;
+        return this.findById(id, adminId);
     }
 
-    async delete(id: number) {
+    async delete(id: number, adminId: number) {
+        // First check if the child exists and belongs to admin
+        const existing = await this.findById(id, adminId);
+        if (!existing) return false;
+
         const query = 'DELETE FROM crianca WHERE id = ?';
         await connection.query(query, [id]);
         return true;

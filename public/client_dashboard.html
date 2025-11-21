@@ -5,355 +5,183 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Escola Vai - Área do Responsável</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #F59E0B;
-            /* Amber for school bus vibe */
-            --bg-dark: #111827;
-            --bg-card: #1F2937;
-            --text-light: #F3F4F6;
-            --text-gray: #9CA3AF;
-        }
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #374151;
-        }
-
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .logout {
-            color: var(--text-gray);
-            text-decoration: none;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .welcome-card {
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-            padding: 30px;
-            border-radius: 16px;
-            margin-bottom: 30px;
-            color: white;
-        }
-
-        .welcome-card h1 {
-            margin-bottom: 10px;
-        }
-
-        .welcome-card p {
-            opacity: 0.9;
-        }
-
-        h2 {
-            margin-bottom: 20px;
-            font-size: 1.2rem;
-            color: var(--text-gray);
-        }
-
-        .payment-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .payment-item {
-            background-color: var(--bg-card);
-            padding: 20px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #374151;
-        }
-
-        .payment-info h3 {
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-        }
-
-        .payment-info span {
-            color: var(--text-gray);
-            font-size: 0.9rem;
-        }
-
-        .payment-status {
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .status-paid {
-            background-color: rgba(16, 185, 129, 0.2);
-            color: #34D399;
-        }
-
-        .status-pending {
-            background-color: rgba(245, 158, 11, 0.2);
-            color: #FBBF24;
-        }
-
-        .status-late {
-            background-color: rgba(239, 68, 68, 0.2);
-            color: #F87171;
-        }
-    </style>
 </head>
 
 <body>
-    <div class="container">
+    <div class="sidebar">
+        <div class="logo">
+            <img src="images/logo.png" alt="Escola Vai Logo">
+        </div>
+        <div class="nav-item active" onclick="showSection('dashboard')">📊 Resumo</div>
+        <div class="nav-item" onclick="showSection('children')">👶 Crianças</div>
+        <div class="nav-item" onclick="showSection('payments')">💰 Pagamentos</div>
+        <div class="nav-item" onclick="showSection('profile')">⚙️ Meus Dados</div>
+        <div class="nav-item logout" onclick="logout()">🚪 Sair</div>
+    </div>
+
+    <div class="main-content">
         <header>
-            <div class="logo">🚌 Escola Vai</div>
-            <a onclick="logout()" class="logout">Sair</a>
+            <h1 id="pageTitle">Área do Responsável</h1>
+            <div class="user-info">
+                <div class="avatar">👤</div>
+                <div>
+                    <div id="userName" style="font-weight: 600;">Carregando...</div>
+                    <div style="font-size: 0.85rem; color: var(--text-gray);">Responsável</div>
+                </div>
+            </div>
         </header>
 
-        <div class="welcome-card">
-            <!DOCTYPE html>
-            <html lang="pt-BR">
-
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Escola Vai - Área do Responsável</title>
-                <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&display=swap"
-                    rel="stylesheet">
-                <style>
-                    :root {
-                        --primary: #F59E0B;
-                        /* Amber for school bus vibe */
-                        --bg-dark: #111827;
-                        --bg-card: #1F2937;
-                        --text-light: #F3F4F6;
-                        --text-gray: #9CA3AF;
-                    }
-
-                    * {
-                        margin: 0;
-                        padding: 0;
-                        box-sizing: border-box;
-                        font-family: 'Outfit', sans-serif;
-                    }
-
-                    body {
-                        background-color: var(--bg-dark);
-                        color: var(--text-light);
-                        padding: 20px;
-                    }
-
-                    .container {
-                        max-width: 800px;
-                        margin: 0 auto;
-                    }
-
-                    header {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        margin-bottom: 40px;
-                        padding-bottom: 20px;
-                        border-bottom: 1px solid #374151;
-                    }
-
-                    .logo {
-                        font-size: 1.5rem;
-                        font-weight: 700;
-                        color: var(--primary);
-                    }
-
-                    .logout {
-                        color: var(--text-gray);
-                        text-decoration: none;
-                        font-weight: 500;
-                        cursor: pointer;
-                    }
-
-                    .welcome-card {
-                        background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-                        padding: 30px;
-                        border-radius: 16px;
-                        margin-bottom: 30px;
-                        color: white;
-                    }
-
-                    .welcome-card h1 {
-                        margin-bottom: 10px;
-                    }
-
-                    .welcome-card p {
-                        opacity: 0.9;
-                    }
-
-                    h2 {
-                        margin-bottom: 20px;
-                        font-size: 1.2rem;
-                        color: var(--text-gray);
-                    }
-
-                    .payment-list {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 15px;
-                    }
-
-                    .payment-item {
-                        background-color: var(--bg-card);
-                        padding: 20px;
-                        border-radius: 12px;
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        border: 1px solid #374151;
-                    }
-
-                    .payment-info h3 {
-                        font-size: 1.1rem;
-                        margin-bottom: 5px;
-                    }
-
-                    .payment-info span {
-                        color: var(--text-gray);
-                        font-size: 0.9rem;
-                    }
-
-                    .payment-status {
-                        padding: 6px 14px;
-                        border-radius: 20px;
-                        font-size: 0.9rem;
-                        font-weight: 500;
-                    }
-
-                    .status-paid {
-                        background-color: rgba(16, 185, 129, 0.2);
-                        color: #34D399;
-                    }
-
-                    .status-pending {
-                        background-color: rgba(245, 158, 11, 0.2);
-                        color: #FBBF24;
-                    }
-
-                    .status-late {
-                        background-color: rgba(239, 68, 68, 0.2);
-                        color: #F87171;
-                    }
-                </style>
-            </head>
-
-            <body>
-                <div class="container">
-                    <header>
-                        <div class="logo">🚌 Escola Vai</div>
-                        <a onclick="logout()" class="logout">Sair</a>
-                    </header>
-
-                    <div class="welcome-card">
-                        <h1 id="welcomeMsg">Olá, Responsável</h1>
-                        <p>Acompanhe aqui o transporte escolar.</p>
+        <!-- Dashboard Section -->
+        <section id="dashboardSection" class="content-section">
+            <div class="summary-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">💰
                     </div>
-
-                    <h2>Seus Pagamentos</h2>
-
-                    <div class="payment-list" id="paymentList">
-                        <!-- Populated by JS -->
-                        <p style="text-align: center; color: var(--text-gray);">Carregando...</p>
+                    <div class="stat-info">
+                        <div class="stat-label">Total Pago</div>
+                        <div class="stat-value" id="totalPaid">R$ 0,00</div>
                     </div>
                 </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">⏳
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Pendente</div>
+                        <div class="stat-value" id="totalPending">R$ 0,00</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">👶
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">Crianças</div>
+                        <div class="stat-value" id="totalChildren">0</div>
+                    </div>
+                </div>
+            </div>
 
-                <script>
-                    const API_URL = 'http://localhost:3000/api';
-                    let currentUserId = null;
+            <h3>Próximos Pagamentos</h3>
+            <div id="upcomingPaymentsList">
+                <!-- Populated by JS -->
+                <p style="color: var(--text-gray); font-style: italic;">Nenhum pagamento pendente.</p>
+            </div>
+        </section>
 
-                    document.addEventListener('DOMContentLoaded', async () => {
-                        // Check authentication
-                        const storedUser = localStorage.getItem('user');
-                        if (!storedUser) {
-                            window.location.href = 'login.html';
-                            return;
-                        }
+        <!-- Children Section -->
+        <section id="childrenSection" class="content-section" style="display: none;">
+            <div class="section-header">
+                <h2>Minhas Crianças</h2>
+            </div>
+            <div id="childrenList">
+                <!-- Populated by JS -->
+            </div>
+        </section>
 
-                        const user = JSON.parse(storedUser);
-                        if (user.role !== 'client') {
-                            alert('Acesso não autorizado!');
-                            window.location.href = 'login.html';
-                            return;
-                        }
+        <!-- Payments Section -->
+        <section id="paymentsSection" class="content-section" style="display: none;">
+            <div class="section-header">
+                <h2>Histórico de Pagamentos</h2>
+                <button class="btn btn-primary" onclick="openPaymentModal()">Informar Pagamento</button>
+            </div>
 
-                        document.getElementById('welcomeMsg').innerText = `Olá, ${user.nome}`;
-                        currentUserId = user.id;
+            <div class="table-container">
+                <table id="tablePayments">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Valor</th>
+                            <th>Referência</th>
+                            <th>Status</th>
+                            <th>Comprovante</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-                        loadMyPagamentos();
-                    });
+        <!-- Profile Section -->
+        <section id="profileSection" class="content-section" style="display: none;">
+            <div class="section-header">
+                <h2>Meus Dados</h2>
+                <button class="btn" style="background-color: #6366f1; color: white;" onclick="downloadMyContract()">🖨️
+                    Imprimir Contrato</button>
+            </div>
 
-                    function logout() {
-                        localStorage.removeItem('user');
-                        window.location.href = 'login.html';
-                    }
+            <div class="form-card">
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label>Nome</label>
+                        <input type="text" id="profileNome" required>
+                    </div>
+                    <div class="form-group">
+                        <label>CPF</label>
+                        <input type="text" id="profileCpf" disabled style="opacity: 0.7; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="profileEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone</label>
+                        <input type="text" id="profileTelefone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Endereço</label>
+                        <input type="text" id="profileEndereco" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nova Senha (deixe em branco para manter)</label>
+                        <input type="password" id="profilePassword" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </form>
+            </div>
+        </section>
+    </div>
 
-                    async function loadMyPagamentos() {
-                        try {
-                            const res = await fetch(`${API_URL}/pagamentos`);
-                            const allPagamentos = await res.json();
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Informar Pagamento</h3>
+                <span class="close" onclick="closePaymentModal()">&times;</span>
+            </div>
+            <form id="paymentForm">
+                <div class="form-group">
+                    <label>Valor (R$)</label>
+                    <input type="number" id="payValue" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Data do Pagamento</label>
+                    <input type="date" id="payDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Referência (Mês/Ano)</label>
+                    <input type="month" id="payReference" required>
+                </div>
+                <div class="form-group">
+                    <label>Observações</label>
+                    <textarea id="payNotes" rows="3"
+                        style="width: 100%; background: rgba(17, 24, 39, 0.6); border: 1px solid #374151; border-radius: 8px; color: white; padding: 10px;"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn" onclick="closePaymentModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-                            const myPagamentos = allPagamentos.filter(p => p.responsavelId === currentUserId);
+    <!-- Notification Overlay -->
+    <div id="notification" class="notification"></div>
 
-                            const container = document.getElementById('paymentList');
+    <script src="client_script.js"></script>
+</body>
 
-                            if (myPagamentos.length === 0) {
-                                container.innerHTML = '<p style="text-align: center; color: var(--text-gray);">Nenhum pagamento encontrado.</p>';
-                                return;
-                            }
-
-                            container.innerHTML = myPagamentos.map(p => {
-                                const statusClass = p.status === 'Pago' ? 'status-paid' : (p.status === 'Pendente' ? 'status-pending' : 'status-late');
-                                return `
-                        <div class="payment-item">
-                            <div class="payment-info">
-                                <h3>Mensalidade</h3>
-                                <span>Vencimento: ${new Date(p.dataPagamento).toLocaleDateString()}</span>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 5px;">R$ ${parseFloat(p.valor).toFixed(2)}</div>
-                                <span class="payment-status ${statusClass}">${p.status}</span>
-                            </div>
-                        </div>
-                    `;
-                            }).join('');
-
-                        } catch (error) {
-                            console.error('Erro ao carregar pagamentos:', error);
-                            document.getElementById('paymentList').innerHTML = '<p class="error">Erro ao carregar dados.</p>';
-                        }
-                    }
-                </script>
-                <script src="chatbot.js"></script>
-            </body>
-
-            </html>
+</html>
