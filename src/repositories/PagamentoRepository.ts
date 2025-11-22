@@ -25,7 +25,14 @@ export class PagamentoRepository {
     }
 
     async findAll(adminId: number) {
-        const query = 'SELECT * FROM pagamento WHERE admin_id = ?';
+        const query = `
+            SELECT 
+                p.*,
+                c.nome as crianca_nome
+            FROM pagamento p
+            LEFT JOIN crianca c ON p.criancaId = c.id
+            WHERE p.admin_id = ?
+        `;
         const [rows] = await connection.execute<RowDataPacket[]>(query, [adminId]);
         return rows;
     }

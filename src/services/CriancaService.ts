@@ -7,7 +7,9 @@ const pagamentoService = new PagamentoService();
 
 interface CriancaInput {
     nome: string;
-    escola: string;
+    dataNascimento?: string;
+    escola?: string;
+    escolaId?: number;
     horario?: string;
     horarioEntrada?: string;
     horarioSaida?: string;

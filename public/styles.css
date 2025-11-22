@@ -220,8 +220,67 @@ tr:hover {
     background-color: rgba(255, 255, 255, 0.02);
 }
 
+/* Status Badges */
 .status-badge {
     padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.status-paid {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #34D399;
+}
+
+.status-pending {
+    background-color: rgba(245, 158, 11, 0.2);
+    color: #FBBF24;
+}
+
+.status-late {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #F87171;
+}
+
+.status-overdue {
+    background-color: rgba(220, 38, 38, 0.3);
+    color: #fca5a5;
+    border: 1px solid #dc2626;
+    font-weight: 600;
+    animation: pulse-overdue 2s ease-in-out infinite;
+}
+
+@keyframes pulse-overdue {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Modals */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: 12px;
     width: 600px;
     max-height: 90vh;
     overflow-y: auto;

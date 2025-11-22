@@ -17,6 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('userName').textContent = user.nome;
 
     loadUsuarios();
+
+    // Search Filter
+    const searchInput = document.getElementById('searchUser');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = usuarios.filter(u =>
+                u.nome.toLowerCase().includes(term) ||
+                u.email.toLowerCase().includes(term) ||
+                u.role.toLowerCase().includes(term)
+            );
+            renderUsersTable(filtered);
+        });
+    }
 });
 
 // Load Users
@@ -31,18 +45,20 @@ async function loadUsuarios() {
             renderUsersTable();
             updateStatistics();
         } else {
-            showNotification('Erro ao carregar usuários', 'error');
+            const data = await res.json().catch(() => ({}));
+            console.error('Error loading users:', res.status, data);
+            showNotification(data.error || `Erro ao carregar usuários (${res.status})`, 'error');
         }
     } catch (error) {
-        console.error(error);
-        showNotification('Erro ao carregar usuários', 'error');
+        console.error('Catch error loading users:', error);
+        showNotification(`Erro ao carregar usuários: ${error.message}`, 'error');
     }
 }
 
 // Render Users Table
-function renderUsersTable() {
+function renderUsersTable(data = usuarios) {
     const tbody = document.querySelector('#tableUsuarios tbody');
-    tbody.innerHTML = usuarios.map(u => {
+    tbody.innerHTML = data.map(u => {
         const isActive = u.active === 1 || u.active === true;
         const statusBadge = isActive
             ? '<span class="status-badge status-paid">Ativo</span>'
@@ -53,7 +69,7 @@ function renderUsersTable() {
             : '';
 
         const editButton = `<button class="btn btn-sm btn-primary" onclick="editUser(${u.id}, '${u.type}')">✏️</button>`;
-        const deleteButton = u.role !== 'master'
+        const deleteButton = (u.role !== 'master' && u.role !== 'cliente')
             ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id}, '${u.type}')">🗑️</button>`
             : '';
 
@@ -263,6 +279,8 @@ function showSection(section) {
 function loadProfile() {
     document.getElementById('profileNome').value = currentUser.nome;
     document.getElementById('profileEmail').value = currentUser.email;
+    document.getElementById('profileCpfCnpj').value = currentUser.cpf_cnpj || '';
+    document.getElementById('profileEndereco').value = currentUser.endereco || '';
 }
 
 // Save Profile
@@ -272,8 +290,10 @@ document.getElementById('profileForm').addEventListener('submit', async (e) => {
     const nome = document.getElementById('profileNome').value;
     const email = document.getElementById('profileEmail').value;
     const password = document.getElementById('profilePassword').value;
+    const cpf_cnpj = document.getElementById('profileCpfCnpj').value;
+    const endereco = document.getElementById('profileEndereco').value;
 
-    const profileData = { nome, email };
+    const profileData = { nome, email, cpf_cnpj, endereco };
     if (password) profileData.password = password;
 
     try {
@@ -289,6 +309,8 @@ document.getElementById('profileForm').addEventListener('submit', async (e) => {
         if (res.ok) {
             currentUser.nome = nome;
             currentUser.email = email;
+            currentUser.cpf_cnpj = cpf_cnpj;
+            currentUser.endereco = endereco;
             localStorage.setItem('user', JSON.stringify(currentUser));
             document.getElementById('userName').textContent = nome;
             showNotification('Perfil atualizado com sucesso!', 'success');

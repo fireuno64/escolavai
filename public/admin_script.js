@@ -2,9 +2,13 @@ const API_URL = 'http://localhost:3000/api';
 
 // State
 let responsaveis = [];
+let filteredResponsaveis = []; // Filtered list for display
 let pagamentos = [];
 let filteredPagamentos = []; // Filtered list for display
 let usuarios = [];
+let escolas = [];
+let filteredEscolas = []; // Filtered list for display
+let expandedResponsaveis = new Set(); // Track which responsaveis are expanded in payment view
 let currentUser = null;
 
 // Custom Notification System
@@ -98,11 +102,16 @@ function confirmAction() {
 
 // Navigation
 function showSection(sectionId) {
-    // Hide all sections
-    const sections = ['dashboard', 'responsaveis', 'pagamentos', 'usuarios'];
+    // Hide all sections using explicit IDs to be safe
+    const sections = ['dashboard', 'responsaveis', 'pagamentos', 'escolas', 'usuarios', 'users'];
     sections.forEach(id => {
         const el = document.getElementById(`${id}-section`);
         if (el) el.style.display = 'none';
+    });
+
+    // Also try class selector as backup
+    document.querySelectorAll('.content-section').forEach(el => {
+        el.style.display = 'none';
     });
 
     // Show selected
@@ -111,7 +120,9 @@ function showSection(sectionId) {
 
     // Update Sidebar Active State
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-    const navItem = document.getElementById(`nav-${sectionId}`) || document.querySelector(`.nav-item[onclick="showSection('${sectionId}')"]`);
+    // Try to find nav item by ID or onclick attribute
+    const navItem = document.getElementById(`nav-${sectionId}`) ||
+        document.querySelector(`.nav-item[onclick="showSection('${sectionId}')"]`);
     if (navItem) navItem.classList.add('active');
 
     // Update Title
@@ -119,9 +130,22 @@ function showSection(sectionId) {
         'dashboard': 'Dashboard',
         'responsaveis': 'Gerenciar Responsáveis',
         'pagamentos': 'Gerenciar Pagamentos',
-        'usuarios': 'Gerenciar Usuários'
+        'escolas': 'Gerenciar Escolas',
+        'usuarios': 'Gerenciar Usuários',
+        'users': 'Gerenciar Usuários'
     };
     document.getElementById('pageTitle').innerText = titles[sectionId] || 'Dashboard';
+
+    // Load data when switching to a section (if not already loaded or to refresh)
+    if (sectionId === 'responsaveis' && responsaveis.length === 0) {
+        loadResponsaveis();
+    } else if (sectionId === 'pagamentos' && pagamentos.length === 0) {
+        loadPagamentos();
+    } else if (sectionId === 'escolas' && escolas.length === 0) {
+        loadEscolas();
+    } else if ((sectionId === 'usuarios' || sectionId === 'users') && usuarios.length === 0) {
+        loadUsers();
+    }
 }
 
 function logout() {
@@ -178,6 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         loadResponsaveis();
         loadPagamentos();
+        loadEscolas();
         showSection('dashboard'); // Default view for Admin
     }
 
@@ -234,6 +259,19 @@ function logout() {
 // Modal Functions
 function openModal(modalId) {
     document.getElementById(modalId).style.display = 'flex';
+
+    // Load profile data when opening profile modal
+    if (modalId === 'modalPerfil') {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            document.getElementById('perfilNome').value = user.nome || '';
+            document.getElementById('perfilEmail').value = user.email || '';
+            document.getElementById('perfilCpfCnpj').value = user.cpf_cnpj || '';
+            document.getElementById('perfilEndereco').value = user.endereco || '';
+            document.getElementById('perfilSenha').value = '';
+        }
+    }
 }
 
 // Function specifically for opening new responsavel modal
@@ -258,6 +296,19 @@ function openNewResponsavelModal() {
     if (btnPrint) btnPrint.style.display = 'none';
 }
 
+function openNewPagamentoModal() {
+    const form = document.getElementById('formPagamento');
+    form.reset();
+    delete form.dataset.editId;
+
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('pagData').value = today;
+
+    document.querySelector('#modalPagamento h2').innerText = 'Novo Pagamento';
+    openModal('modalPagamento');
+}
+
 function closeModal(modalId) {
     // Clean up editId when closing responsavel modal
     if (modalId === 'modalResponsavel') {
@@ -266,6 +317,11 @@ function closeModal(modalId) {
     }
     if (modalId === 'modalUsuario') {
         const form = document.getElementById('formUsuario');
+        delete form.dataset.editId;
+        form.reset();
+    }
+    if (modalId === 'modalPagamento') {
+        const form = document.getElementById('formPagamento');
         delete form.dataset.editId;
         form.reset();
     }
@@ -331,10 +387,82 @@ async function loadUsers() {
     }
 }
 
+async function loadEscolas() {
+    console.log('Loading escolas...');
+    try {
+        const res = await fetch(`${API_URL}/escolas`, {
+            headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+        if (res.ok) {
+            escolas = await res.json();
+            console.log('Escolas loaded:', escolas);
+            renderEscolasTable();
+            populateEscolaSelect();
+        } else {
+            console.error('Failed to load escolas');
+            // Handle error gracefully
+            escolas = [];
+            renderEscolasTable();
+        }
+    } catch (error) {
+        console.error('Erro ao carregar escolas:', error);
+        // Handle error gracefully
+        escolas = [];
+        renderEscolasTable();
+    }
+}
+
+// Responsável Filter Functions
+function hasActiveResponsavelFilters() {
+    const filterNome = document.getElementById('filterRespNome')?.value || '';
+    const filterCpf = document.getElementById('filterRespCpf')?.value || '';
+    const filterEmail = document.getElementById('filterRespEmail')?.value || '';
+
+    return filterNome !== '' || filterCpf !== '' || filterEmail !== '';
+}
+
+function applyResponsavelFilters() {
+    const filterNome = document.getElementById('filterRespNome').value.toLowerCase();
+    const filterCpf = document.getElementById('filterRespCpf').value;
+    const filterEmail = document.getElementById('filterRespEmail').value.toLowerCase();
+
+    filteredResponsaveis = responsaveis.filter(r => {
+        if (filterNome && !r.nome.toLowerCase().includes(filterNome)) {
+            return false;
+        }
+        if (filterCpf && !r.cpf.includes(filterCpf)) {
+            return false;
+        }
+        if (filterEmail && !r.email.toLowerCase().includes(filterEmail)) {
+            return false;
+        }
+        return true;
+    });
+
+    renderResponsaveisTable();
+}
+
+function clearResponsavelFilters() {
+    document.getElementById('filterRespNome').value = '';
+    document.getElementById('filterRespCpf').value = '';
+    document.getElementById('filterRespEmail').value = '';
+
+    filteredResponsaveis = [];
+    renderResponsaveisTable();
+}
+
 // Rendering
 function renderResponsaveisTable() {
     const tbody = document.querySelector('#tableResponsaveis tbody');
-    tbody.innerHTML = responsaveis.map(r => `
+    const dataToRender = filteredResponsaveis.length > 0 || hasActiveResponsavelFilters() ? filteredResponsaveis : responsaveis;
+
+    if (dataToRender.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-gray); padding: 20px;">Nenhum responsável encontrado</td></tr>';
+        document.getElementById('totalResponsaveis').innerText = '0';
+        return;
+    }
+
+    tbody.innerHTML = dataToRender.map(r => `
         <tr>
             <td>${r.nome}</td>
             <td>${r.cpf}</td>
@@ -350,7 +478,7 @@ function renderResponsaveisTable() {
         </tr>
     `).join('');
 
-    document.getElementById('totalResponsaveis').innerText = responsaveis.length;
+    document.getElementById('totalResponsaveis').innerText = dataToRender.length;
 }
 
 async function downloadContract(responsavelId) {
@@ -454,40 +582,124 @@ function renderPagamentosTable() {
     }
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to midnight for accurate comparison
+    today.setHours(0, 0, 0, 0);
 
-    tbody.innerHTML = dataToRender.map(p => {
-        const resp = responsaveis.find(r => r.id === p.responsavelId);
-        const pagamentoDate = new Date(p.dataPagamento);
-
-        // Check if payment is overdue (Pendente and date < today)
-        let displayStatus = p.status;
-        let statusClass = '';
-
-        if (p.status === 'Pendente' && pagamentoDate < today) {
-            displayStatus = 'Vencido';
-            statusClass = 'status-overdue';
-        } else {
-            statusClass = p.status === 'Pago' ? 'status-paid' : (p.status === 'Pendente' ? 'status-pending' : 'status-late');
+    // Group payments by responsável
+    const grouped = {};
+    dataToRender.forEach(p => {
+        if (!grouped[p.responsavelId]) {
+            grouped[p.responsavelId] = [];
         }
+        grouped[p.responsavelId].push(p);
+    });
 
-        // Toggle button text and color
-        const toggleButtonText = p.status === 'Pago' ? '↩️ Pendente' : '✓ Pagar';
-        const toggleButtonColor = p.status === 'Pago' ? '#f59e0b' : '#10b981';
+    let html = '';
 
-        return `
-        <tr>
-            <td>${resp ? resp.nome : 'Desconhecido'}</td>
-            <td>R$ ${parseFloat(p.valor).toFixed(2)}</td>
-            <td><span class="status-badge ${statusClass}">${displayStatus}</span></td>
-            <td>${pagamentoDate.toLocaleDateString()}</td>
-            <td>
-                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background: ${toggleButtonColor}; color: white; margin-right: 5px;" onclick="togglePagamentoStatus(${p.id}, '${p.status}')">${toggleButtonText}</button>
-                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.8rem;" onclick="deletePagamento(${p.id})">Excluir</button>
+    Object.keys(grouped).forEach(responsavelId => {
+        const resp = responsaveis.find(r => r.id === parseInt(responsavelId));
+        const payments = grouped[responsavelId];
+        const respName = resp ? resp.nome : 'Desconhecido';
+        const totalPendente = payments
+            .filter(p => p.status === 'Pendente')
+            .reduce((acc, p) => acc + parseFloat(p.valor), 0);
+
+        const totalPago = payments
+            .filter(p => p.status === 'Pago')
+            .reduce((acc, p) => acc + parseFloat(p.valor), 0);
+
+        // Calculate total value of overdue payments (not count)
+        const totalVencidos = payments.filter(p => {
+            const pDate = new Date(p.dataPagamento);
+            pDate.setHours(0, 0, 0, 0);
+            return p.status === 'Pendente' && pDate < today;
+        }).reduce((acc, p) => acc + parseFloat(p.valor), 0);
+
+        const isExpanded = expandedResponsaveis.has(parseInt(responsavelId));
+
+        // Header row for responsável (always visible)
+        html += `
+        <tr class="responsavel-header" onclick="toggleResponsavelPayments(${responsavelId})" style="cursor: pointer; background: rgba(255,255,255,0.05); font-weight: 500; border-bottom: 2px solid #374151;">
+            <td style="padding: 12px;">
+                <span id="toggle-icon-${responsavelId}" style="display: inline-block; width: 20px; transition: transform 0.3s;">${isExpanded ? '▼' : '▶'}</span>
+                <strong>${respName}</strong>
+                <span style="color: var(--text-gray); font-size: 0.85rem; margin-left: 8px;">(${payments.length} pagamento${payments.length > 1 ? 's' : ''})</span>
             </td>
-        </tr>
-    `}).join('');
+            <td style="color: ${totalPendente > 0 ? '#FBBF24' : 'var(--text-gray)'};">R$ ${totalPendente.toFixed(2)}</td>
+            <td style="color: ${totalPago > 0 ? '#34D399' : 'var(--text-gray)'};">R$ ${totalPago.toFixed(2)}</td>
+            <td style="color: ${totalVencidos > 0 ? '#F87171' : 'var(--text-gray)'};">R$ ${totalVencidos.toFixed(2)}</td>
+            <td>
+                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); openNewPagamentoModal(); document.getElementById('pagRespId').value = ${responsavelId};">+ Novo</button>
+            </td>
+        </tr>`;
+
+        // Payment rows (initially hidden)
+        payments.forEach(p => {
+            const pagamentoDate = new Date(p.dataPagamento);
+            let displayStatus = p.status;
+            let statusClass = '';
+
+            if (p.status === 'Pendente' && pagamentoDate < today) {
+                displayStatus = 'Vencido';
+                statusClass = 'status-overdue';
+            } else {
+                statusClass = p.status === 'Pago' ? 'status-paid' : (p.status === 'Pendente' ? 'status-pending' : 'status-late');
+            }
+
+            const toggleButtonText = p.status === 'Pago' ? '↩️ Pendente' : '✓ Pagar';
+            const toggleButtonColor = p.status === 'Pago' ? '#f59e0b' : '#10b981';
+
+            // Get contract/child reference if available
+            const contratoRef = p.contratoId ? `Contrato #${p.contratoId}` : (p.crianca_nome || p.referencia || 'Sem referência');
+
+            html += `
+            <tr class="payment-row payment-row-${responsavelId}" style="display: ${isExpanded ? 'table-row' : 'none'}; background: rgba(255,255,255,0.02);">
+                <td style="padding-left: 40px; font-size: 0.9rem;">
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <div>
+                            <span style="color: var(--text-gray);">Vencimento:</span> ${pagamentoDate.toLocaleDateString('pt-BR')}
+                        </div>
+                        <div style="font-size: 0.85rem; color: #9CA3AF;">
+                            <span style="color: var(--text-gray);">Ref:</span> ${contratoRef}
+                        </div>
+                    </div>
+                </td>
+                <td colspan="2">
+                    <span style="color: var(--text-gray);">Valor:</span> R$ ${parseFloat(p.valor).toFixed(2)}
+                    <span class="status-badge ${statusClass}" style="margin-left: 10px;">${displayStatus}</span>
+                </td>
+                <td colspan="2">
+                    <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.8rem; margin-right: 5px;" onclick="event.stopPropagation(); editPagamento(${p.id})">✏️ Editar</button>
+                    <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background: ${toggleButtonColor}; color: white; margin-right: 5px;" onclick="event.stopPropagation(); togglePagamentoStatus(${p.id}, '${p.status}')">${toggleButtonText}</button>
+                    <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background: var(--danger); color: white;" onclick="event.stopPropagation(); deletePagamento(${p.id})">🗑️</button>
+                </td>
+            </tr>`;
+        });
+    });
+
+    tbody.innerHTML = html;
 }
+
+
+
+// Toggle function for expanding/collapsing payment rows
+function toggleResponsavelPayments(responsavelId) {
+    const id = parseInt(responsavelId);
+    const rows = document.querySelectorAll(`.payment-row-${responsavelId}`);
+    const icon = document.getElementById(`toggle-icon-${responsavelId}`);
+
+    if (expandedResponsaveis.has(id)) {
+        // Collapse
+        expandedResponsaveis.delete(id);
+        rows.forEach(row => row.style.display = 'none');
+        if (icon) icon.textContent = '▶';
+    } else {
+        // Expand
+        expandedResponsaveis.add(id);
+        rows.forEach(row => row.style.display = 'table-row');
+        if (icon) icon.textContent = '▼';
+    }
+}
+
 
 function renderUsersTable() {
     const tbody = document.querySelector('#tableUsuarios tbody');
@@ -529,6 +741,71 @@ function renderUsersTable() {
     }
 }
 
+function renderEscolasTable() {
+    const tbody = document.getElementById('escolasTableBody');
+    if (!tbody) return;
+
+    const dataToRender = filteredEscolas.length > 0 || hasActiveEscolaFilters() ? filteredEscolas : escolas;
+
+    if (dataToRender.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-gray); padding: 20px;">Nenhuma escola encontrada</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = dataToRender.map(e => `
+        <tr>
+            <td>${e.nome}</td>
+            <td>${e.endereco || '-'}</td>
+            <td>${e.contato || '-'}</td>
+            <td>${e.telefone || '-'}</td>
+            <td>
+                <button class="btn btn-primary" style="padding: 6px 12px; margin-right: 5px;" onclick="editEscola(${e.id})">✏️ Editar</button>
+                <button class="btn" style="padding: 6px 12px; background: var(--danger); color: white;" onclick="deleteEscola(${e.id})">🗑️ Excluir</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Escola Filter Functions
+function hasActiveEscolaFilters() {
+    const filterNome = document.getElementById('filterEscolaNome')?.value || '';
+    const filterEndereco = document.getElementById('filterEscolaEndereco')?.value || '';
+    const filterTelefone = document.getElementById('filterEscolaTelefone')?.value || '';
+
+    return filterNome !== '' || filterEndereco !== '' || filterTelefone !== '';
+}
+
+function applyEscolaFilters() {
+    const filterNome = document.getElementById('filterEscolaNome').value.toLowerCase();
+    const filterEndereco = document.getElementById('filterEscolaEndereco').value.toLowerCase();
+    const filterTelefone = document.getElementById('filterEscolaTelefone').value;
+
+    filteredEscolas = escolas.filter(e => {
+        if (filterNome && !e.nome.toLowerCase().includes(filterNome)) {
+            return false;
+        }
+        if (filterEndereco && !(e.endereco || '').toLowerCase().includes(filterEndereco)) {
+            return false;
+        }
+        if (filterTelefone && !(e.telefone || '').includes(filterTelefone)) {
+            return false;
+        }
+        return true;
+    });
+
+    renderEscolasTable();
+}
+
+function clearEscolaFilters() {
+    document.getElementById('filterEscolaNome').value = '';
+    document.getElementById('filterEscolaEndereco').value = '';
+    document.getElementById('filterEscolaTelefone').value = '';
+
+    filteredEscolas = [];
+    renderEscolasTable();
+}
+
+
 function populateResponsavelSelect() {
     const select = document.getElementById('pagRespId');
     select.innerHTML = '<option value="">Selecione o Responsável</option>' +
@@ -536,17 +813,175 @@ function populateResponsavelSelect() {
 }
 
 function updateStats() {
-    // Total Pendentes
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // Total Pendentes (All time)
     const totalPendentes = pagamentos
         .filter(p => p.status === 'Pendente')
         .reduce((acc, curr) => acc + parseFloat(curr.valor), 0);
     document.getElementById('totalPendentes').innerText = `R$ ${totalPendentes.toFixed(2)}`;
 
-    // Receita Mensal (Simplificado: Soma de todos os 'Pago')
+    // Receita Mensal (Paid in current month)
     const receita = pagamentos
-        .filter(p => p.status === 'Pago')
+        .filter(p => {
+            const pDate = new Date(p.dataPagamento);
+            return p.status === 'Pago' &&
+                pDate.getMonth() === currentMonth &&
+                pDate.getFullYear() === currentYear;
+        })
         .reduce((acc, curr) => acc + parseFloat(curr.valor), 0);
     document.getElementById('receitaMensal').innerText = `R$ ${receita.toFixed(2)}`;
+
+    // Valor Total de Vencidos (Pending and date < today)
+    today.setHours(0, 0, 0, 0);
+    const totalVencidos = pagamentos
+        .filter(p => {
+            const pDate = new Date(p.dataPagamento);
+            pDate.setHours(0, 0, 0, 0);
+            return p.status === 'Pendente' && pDate < today;
+        })
+        .reduce((acc, curr) => acc + parseFloat(curr.valor), 0);
+
+    const elTotalVencidos = document.getElementById('totalVencidos');
+    if (elTotalVencidos) elTotalVencidos.innerText = `R$ ${totalVencidos.toFixed(2)}`;
+
+    // Pagamentos Vencidos Count (Pending and date < today)
+    const vencidosCount = pagamentos.filter(p => {
+        const pDate = new Date(p.dataPagamento);
+        pDate.setHours(0, 0, 0, 0);
+        const todayCheck = new Date();
+        todayCheck.setHours(0, 0, 0, 0);
+        return p.status === 'Pendente' && pDate < todayCheck;
+    }).length;
+
+    const elVencidos = document.getElementById('pagamentosVencidos');
+    if (elVencidos) elVencidos.innerText = vencidosCount;
+
+    renderRevenueChart();
+}
+
+let revenueChartInstance = null;
+
+function renderRevenueChart() {
+    const ctx = document.getElementById('revenueChart');
+    if (!ctx) return;
+
+    // Aggregate data: Pending payments by month
+    const monthlyData = {};
+    const today = new Date();
+
+    // Initialize next 6 months
+    for (let i = 0; i < 6; i++) {
+        const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        const key = d.toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
+        monthlyData[key] = 0;
+    }
+
+    pagamentos.forEach(p => {
+        if (p.status === 'Pendente') {
+            const pDate = new Date(p.dataPagamento);
+            // Only consider future or current month payments for forecast
+            // (Or should we include past due? User asked for "forecast", usually future. 
+            // But "vencidos" are also pending. Let's include all pending grouped by their due month)
+            const key = pDate.toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
+
+            // Only add if it falls within our initialized range or just add it dynamically?
+            // Let's add dynamically but sort later.
+            if (monthlyData[key] !== undefined) {
+                monthlyData[key] += parseFloat(p.valor);
+            } else {
+                // If it's a future month beyond 6 months, or a past month
+                // For forecast, maybe we want to see past due in a separate "Vencidos" bar?
+                // For now, let's stick to the next 6 months as a "Forecast".
+                // If the user wants "Vencidos", they have the card.
+                // Let's check if it is in the future or current month
+                if (pDate >= new Date(today.getFullYear(), today.getMonth(), 1)) {
+                    // It's future/current, but outside our 6 month init?
+                    // Let's just accumulate all pending by month.
+                    if (!monthlyData[key]) monthlyData[key] = 0;
+                    monthlyData[key] += parseFloat(p.valor);
+                }
+            }
+        }
+    });
+
+    // Sort keys chronologically
+    const sortedKeys = Object.keys(monthlyData).sort((a, b) => {
+        const [monthA, yearA] = a.split(' ');
+        const [monthB, yearB] = b.split(' ');
+        // Simple parsing might fail with locale. Let's use a helper or just rely on the initialization order if we stick to fixed range.
+        // Better: create an array of objects { label, value, dateObj } and sort by dateObj.
+        return 0; // Placeholder if we rely on pre-filled keys
+    });
+
+    // Re-doing aggregation for proper sorting
+    const aggregator = [];
+    pagamentos.forEach(p => {
+        if (p.status === 'Pendente') {
+            const d = new Date(p.dataPagamento);
+            // Filter: only show from current month onwards
+            const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            if (d >= startOfCurrentMonth) {
+                const label = d.toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
+                const existing = aggregator.find(item => item.label === label);
+                if (existing) {
+                    existing.value += parseFloat(p.valor);
+                } else {
+                    aggregator.push({ label, value: parseFloat(p.valor), date: new Date(d.getFullYear(), d.getMonth(), 1) });
+                }
+            }
+        }
+    });
+
+    // Sort by date
+    aggregator.sort((a, b) => a.date - b.date);
+
+    // Take top 12 months
+    const finalData = aggregator.slice(0, 12);
+
+    const labels = finalData.map(item => item.label);
+    const data = finalData.map(item => item.value);
+
+    if (revenueChartInstance) {
+        revenueChartInstance.destroy();
+    }
+
+    revenueChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Previsão de Recebimento (R$)',
+                data: data,
+                backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                borderColor: '#10B981',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: '#9CA3AF' }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#374151' },
+                    ticks: { color: '#9CA3AF' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#9CA3AF' }
+                }
+            }
+        }
+    });
 }
 
 // Form Handling
@@ -623,7 +1058,9 @@ async function handleResponsavelSubmit(e) {
                         },
                         body: JSON.stringify({
                             nome: child.nome,
-                            escola: child.escola,
+                            dataNascimento: child.dataNascimento,
+                            escolaId: child.escolaId,
+                            tipoTransporte: child.tipoTransporte,
                             horarioEntrada: child.horarioEntrada,
                             horarioSaida: child.horarioSaida,
                             dataInicioContrato: child.dataInicioContrato,
@@ -641,7 +1078,9 @@ async function handleResponsavelSubmit(e) {
                         },
                         body: JSON.stringify({
                             nome: child.nome,
-                            escola: child.escola,
+                            dataNascimento: child.dataNascimento,
+                            escolaId: child.escolaId,
+                            tipoTransporte: child.tipoTransporte,
                             horarioEntrada: child.horarioEntrada,
                             horarioSaida: child.horarioSaida,
                             dataInicioContrato: child.dataInicioContrato,
@@ -661,6 +1100,7 @@ async function handleResponsavelSubmit(e) {
             const modalTitle = document.querySelector('#modalResponsavel h2');
             if (modalTitle) modalTitle.innerText = 'Novo Responsável';
             loadResponsaveis();
+            loadPagamentos(); // Refresh payments list to show newly generated payments
         } else {
             // Parse error message from backend
             const errorData = await res.json();
@@ -675,15 +1115,22 @@ async function handleResponsavelSubmit(e) {
 
 async function handlePagamentoSubmit(e) {
     e.preventDefault();
+    const form = e.target;
+    const editId = form.dataset.editId;
+
     const data = {
         responsavelId: document.getElementById('pagRespId').value,
         valor: parseFloat(document.getElementById('pagValor').value),
-        status: document.getElementById('pagStatus').value
+        status: document.getElementById('pagStatus').value,
+        dataPagamento: document.getElementById('pagData').value
     };
 
     try {
-        const res = await fetch(`${API_URL}/pagamentos`, {
-            method: 'POST',
+        const url = editId ? `${API_URL}/pagamentos/${editId}` : `${API_URL}/pagamentos`;
+        const method = editId ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${currentUser.token}`
@@ -694,14 +1141,15 @@ async function handlePagamentoSubmit(e) {
         if (res.ok) {
             closeModal('modalPagamento');
             e.target.reset();
+            delete form.dataset.editId;
             loadPagamentos();
-            showNotification('Pagamento criado com sucesso!', 'success');
+            showNotification(editId ? 'Pagamento atualizado com sucesso!' : 'Pagamento criado com sucesso!', 'success');
         } else {
-            showNotification('Erro ao criar pagamento', 'error');
+            showNotification('Erro ao salvar pagamento', 'error');
         }
     } catch (error) {
         console.error(error);
-        showNotification('Erro ao criar pagamento', 'error');
+        showNotification('Erro ao salvar pagamento', 'error');
     }
 }
 
@@ -795,6 +1243,26 @@ function deletePagamento(id) {
     });
 }
 
+function editPagamento(id) {
+    const pagamento = pagamentos.find(p => p.id === id);
+    if (!pagamento) return;
+
+    document.getElementById('pagRespId').value = pagamento.responsavelId;
+    document.getElementById('pagValor').value = pagamento.valor;
+    document.getElementById('pagStatus').value = pagamento.status;
+
+    // Format date for input type="date" (YYYY-MM-DD)
+    const date = new Date(pagamento.dataPagamento);
+    const formattedDate = date.toISOString().split('T')[0];
+    document.getElementById('pagData').value = formattedDate;
+
+    const form = document.getElementById('formPagamento');
+    form.dataset.editId = id;
+
+    document.querySelector('#modalPagamento h2').innerText = 'Editar Pagamento';
+    openModal('modalPagamento');
+}
+
 // Responsável Edit/Delete Functions
 async function editResponsavel(id) {
     const responsavel = responsaveis.find(r => r.id === id);
@@ -862,6 +1330,7 @@ function deleteResponsavel(id) {
             if (res.ok) {
                 showNotification('Responsável excluído com sucesso!', 'success');
                 loadResponsaveis();
+                loadPagamentos(); // Refresh payments list to remove deleted responsável's payments
             } else {
                 showNotification('Erro ao excluir responsável', 'error');
             }
@@ -871,6 +1340,133 @@ function deleteResponsavel(id) {
         }
     });
 }
+
+
+
+// School Management Functions
+function openNewEscolaModal() {
+    const form = document.getElementById('formEscola');
+    form.reset();
+    delete form.dataset.editId;
+    document.querySelector('#modalEscola h2').innerText = 'Nova Escola';
+    openModal('modalEscola');
+}
+
+async function handleEscolaSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const editId = form.dataset.editId;
+
+    const data = {
+        nome: document.getElementById('escolaNome').value,
+        endereco: document.getElementById('escolaEndereco').value,
+        contato: document.getElementById('escolaContato').value,
+        telefone: document.getElementById('escolaTelefone').value,
+        email: document.getElementById('escolaEmail').value
+    };
+
+    try {
+        const url = editId ? `${API_URL}/escolas/${editId}` : `${API_URL}/escolas`;
+        const method = editId ? 'PUT' : 'POST';
+
+        const res = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.token}`
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            showNotification(editId ? 'Escola atualizada com sucesso!' : 'Escola criada com sucesso!', 'success');
+            closeModal('modalEscola');
+            loadEscolas();
+        } else {
+            const errorData = await res.json();
+            showNotification(errorData.error || 'Erro ao salvar escola', 'error');
+        }
+    } catch (error) {
+        console.error(error);
+        showNotification('Erro ao salvar escola', 'error');
+    }
+}
+
+function editEscola(id) {
+    const escola = escolas.find(e => e.id === id);
+    if (!escola) return;
+
+    document.getElementById('escolaNome').value = escola.nome;
+    document.getElementById('escolaEndereco').value = escola.endereco || '';
+    document.getElementById('escolaContato').value = escola.contato || '';
+    document.getElementById('escolaTelefone').value = escola.telefone || '';
+    document.getElementById('escolaEmail').value = escola.email || '';
+
+    document.getElementById('formEscola').dataset.editId = id;
+    document.querySelector('#modalEscola h2').innerText = 'Editar Escola';
+    openModal('modalEscola');
+}
+
+function deleteEscola(id) {
+    showConfirmation('Tem certeza que deseja excluir esta escola?', async () => {
+        try {
+            const res = await fetch(`${API_URL}/escolas/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${currentUser.token}` }
+            });
+
+            if (res.ok) {
+                showNotification('Escola excluída com sucesso!', 'success');
+                loadEscolas();
+            } else {
+                const errorData = await res.json();
+                showNotification(errorData.error || 'Erro ao excluir escola', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            showNotification('Erro ao excluir escola', 'error');
+        }
+    });
+}
+
+function populateEscolaSelect() {
+    const select = document.getElementById('childEscola');
+    if (!select) return;
+
+    select.innerHTML = '<option value="">Selecione uma escola...</option>' +
+        escolas.map(e => `<option value="${e.id}">${e.nome}</option>`).join('');
+}
+
+function toggleHorarioFields() {
+    const tipo = document.getElementById('childTipoTransporte').value;
+    const groupEntrada = document.getElementById('groupHorarioEntrada');
+    const groupSaida = document.getElementById('groupHorarioSaida');
+
+    if (tipo === 'ida_volta') {
+        groupEntrada.style.display = 'block';
+        groupSaida.style.display = 'block';
+    } else if (tipo === 'so_ida') {
+        groupEntrada.style.display = 'block';
+        groupSaida.style.display = 'none';
+        document.getElementById('childHorarioSaida').value = '';
+    } else if (tipo === 'so_volta') {
+        groupEntrada.style.display = 'none';
+        groupSaida.style.display = 'block';
+        document.getElementById('childHorarioEntrada').value = '';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 function editUser(id) {
     const user = usuarios.find(u => u.id === id);
@@ -952,15 +1548,24 @@ function renderChildrenList() {
         'so_volta': 'Somente Volta'
     };
 
-    listView.innerHTML = currentChildren.map((child, index) => `
+    listView.innerHTML = currentChildren.map((child, index) => {
+        // Resolve school name
+        let escolaNome = child.escola || 'Não informada';
+        if (child.escolaId) {
+            const escolaObj = escolas.find(e => e.id == child.escolaId);
+            if (escolaObj) escolaNome = escolaObj.nome;
+        }
+
+        return `
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 6px; margin-bottom: 8px; border: 1px solid #374151;">
             <div>
                 <strong style="color: white;">${child.nome || 'Sem nome'}</strong>
                 <div style="font-size: 0.85rem; color: var(--text-gray); margin-top: 4px;">
-                    ${child.escola ? `Escola: ${child.escola}` : ''}
+                    Escola: ${escolaNome}
                     ${child.tipoTransporte || child.tipo_transporte ? ` | Transporte: ${transporteLabels[child.tipoTransporte || child.tipo_transporte] || 'Ida e Volta'}` : ''}
                 </div>
                 <div style="font-size: 0.85rem; color: var(--text-gray); margin-top: 2px;">
+                    ${child.dataNascimento ? `Nasc: ${new Date(child.dataNascimento).toLocaleDateString('pt-BR')} | ` : ''}
                     ${child.horarioEntrada || child.horarioSaida ? `Horário: ${child.horarioEntrada || '--'} - ${child.horarioSaida || '--'}` : ''}
                 </div>
                 <div style="font-size: 0.85rem; color: var(--text-gray); margin-top: 2px;">
@@ -973,7 +1578,7 @@ function renderChildrenList() {
                 <button type="button" class="btn" style="padding: 6px 12px; background: var(--danger); color: white; font-size: 0.85rem;" onclick="deleteChild(${index})">🗑️ Excluir</button>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 // Show form for adding/editing child
@@ -993,24 +1598,31 @@ function showChildForm(childIndex = null) {
             <input type="text" id="childNome" value="${childData?.nome || ''}" required>
         </div>
         <div class="form-group" style="margin-bottom: 10px;">
-            <label>Escola</label>
-            <input type="text" id="childEscola" value="${childData?.escola || ''}">
+            <label>Data de Nascimento</label>
+            <input type="date" id="childDataNascimento" value="${childData?.dataNascimento ? childData.dataNascimento.split('T')[0] : childData?.data_nascimento ? childData.data_nascimento.split('T')[0] : ''}">
+        </div>
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label>Escola *</label>
+            <select id="childEscola" required>
+                <option value="">Selecione uma escola...</option>
+                ${escolas.map(e => `<option value="${e.id}" ${childData && (childData.escolaId == e.id || childData.escola_id == e.id) ? 'selected' : ''}>${e.nome}</option>`).join('')}
+            </select>
         </div>
         <div class="form-group" style="margin-bottom: 10px;">
             <label>Tipo de Transporte *</label>
-            <select id="childTipoTransporte" required>
+            <select id="childTipoTransporte" onchange="toggleHorarioFields()" required>
                 <option value="ida_volta" ${(childData?.tipoTransporte || childData?.tipo_transporte || 'ida_volta') === 'ida_volta' ? 'selected' : ''}>Ida e Volta</option>
                 <option value="so_ida" ${(childData?.tipoTransporte || childData?.tipo_transporte) === 'so_ida' ? 'selected' : ''}>Somente Ida</option>
                 <option value="so_volta" ${(childData?.tipoTransporte || childData?.tipo_transporte) === 'so_volta' ? 'selected' : ''}>Somente Volta</option>
             </select>
         </div>
-        <div class="form-group" style="margin-bottom: 10px;">
+        <div class="form-group" id="groupHorarioEntrada" style="margin-bottom: 10px;">
             <label>Horário Entrada</label>
-            <input type="time" id="childEntrada" value="${childData?.horarioEntrada || childData?.horario_entrada || ''}">
+            <input type="time" id="childHorarioEntrada" value="${childData?.horarioEntrada || childData?.horario_entrada || ''}">
         </div>
-        <div class="form-group" style="margin-bottom: 10px;">
+        <div class="form-group" id="groupHorarioSaida" style="margin-bottom: 10px;">
             <label>Horário Saída</label>
-            <input type="time" id="childSaida" value="${childData?.horarioSaida || childData?.horario_saida || ''}">
+            <input type="time" id="childHorarioSaida" value="${childData?.horarioSaida || childData?.horario_saida || ''}">
         </div>
         <div class="form-group" style="margin-bottom: 10px;">
             <label>Data Início Contrato *</label>
@@ -1022,27 +1634,32 @@ function showChildForm(childIndex = null) {
         </div>
     `;
 
+    // Initialize visibility
+    setTimeout(toggleHorarioFields, 0);
+
     formContainer.style.display = 'block';
 }
 
 // Save child form data
 function saveChildForm() {
     const nome = document.getElementById('childNome').value;
-    const escola = document.getElementById('childEscola').value;
+    const dataNascimento = document.getElementById('childDataNascimento').value;
+    const escolaId = document.getElementById('childEscola').value;
     const tipoTransporte = document.getElementById('childTipoTransporte').value;
-    const horarioEntrada = document.getElementById('childEntrada').value;
-    const horarioSaida = document.getElementById('childSaida').value;
+    const horarioEntrada = document.getElementById('childHorarioEntrada').value;
+    const horarioSaida = document.getElementById('childHorarioSaida').value;
     const dataInicioContrato = document.getElementById('childDataInicio').value;
     const valorContratoAnual = parseFloat(document.getElementById('childValor').value);
 
-    if (!nome || !dataInicioContrato || !valorContratoAnual) {
+    if (!nome || !escolaId || !dataInicioContrato || !valorContratoAnual) {
         showNotification('Por favor, preencha todos os campos obrigatórios.', 'warning');
         return;
     }
 
     const childData = {
         nome,
-        escola,
+        dataNascimento,
+        escolaId,
         tipoTransporte,
         horarioEntrada,
         horarioSaida,
@@ -1148,8 +1765,10 @@ async function handlePerfilSubmit(e) {
     const nome = document.getElementById('perfilNome').value;
     const email = document.getElementById('perfilEmail').value;
     const senha = document.getElementById('perfilSenha').value;
+    const cpf_cnpj = document.getElementById('perfilCpfCnpj').value;
+    const endereco = document.getElementById('perfilEndereco').value;
 
-    const data = { nome, email };
+    const data = { nome, email, cpf_cnpj, endereco };
     if (senha) {
         data.password = senha;
     }
@@ -1189,4 +1808,113 @@ async function handlePerfilSubmit(e) {
 function logout() {
     localStorage.removeItem('user');
     window.location.href = 'login.html';
+}
+
+// ==================== CHATBOT FUNCTIONS ====================
+const CHATBOT_API_URL = 'http://localhost:5000/api/chat';
+
+// Gera ID de sessão único para o usuário
+let chatSessionId = localStorage.getItem('chatSessionId');
+if (!chatSessionId) {
+    chatSessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('chatSessionId', chatSessionId);
+}
+
+function toggleChatbot() {
+    const chatWindow = document.getElementById('chatbotWindow');
+    chatWindow.classList.toggle('active');
+
+    if (chatWindow.classList.contains('active')) {
+        document.getElementById('chatbotInput').focus();
+    }
+}
+
+async function sendChatMessage() {
+    const input = document.getElementById('chatbotInput');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    addChatMessage(message, 'user');
+    input.value = '';
+    showTypingIndicator();
+
+    try {
+        const response = await fetch(CHATBOT_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: message,
+                session_id: chatSessionId
+            })
+        });
+
+        if (!response.ok) throw new Error('Erro ao conectar com o chatbot');
+
+        const data = await response.json();
+        removeTypingIndicator();
+        addChatMessage(data.response, 'bot');
+
+    } catch (error) {
+        console.error('Erro no chatbot:', error);
+        removeTypingIndicator();
+        addChatMessage('Desculpe, estou com problemas técnicos. Tente novamente.', 'bot');
+    }
+}
+
+function addChatMessage(message, sender) {
+    const messagesContainer = document.getElementById('chatbotMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chatbot-message ${sender}`;
+
+    if (sender === 'bot') {
+        // Para mensagens do bot, adiciona efeito de digitação
+        messageDiv.textContent = ''; // Começa vazio
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+        // Efeito de digitação
+        let index = 0;
+        const speed = 30; // Velocidade de digitação (ms por caractere) - mais lento para parecer humano
+
+        function typeCharacter() {
+            if (index < message.length) {
+                messageDiv.textContent += message.charAt(index);
+                index++;
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                setTimeout(typeCharacter, speed);
+            }
+        }
+
+        typeCharacter();
+    } else {
+        // Mensagens do usuário aparecem instantaneamente
+        messageDiv.textContent = message;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+}
+
+function showTypingIndicator() {
+    const messagesContainer = document.getElementById('chatbotMessages');
+    const typingDiv = document.createElement('div');
+    typingDiv.className = 'chatbot-typing';
+    typingDiv.id = 'typingIndicator';
+    typingDiv.innerHTML = `
+        <div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="typing-text">O robô está digitando...</div>
+    `;
+    messagesContainer.appendChild(typingDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function removeTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
 }

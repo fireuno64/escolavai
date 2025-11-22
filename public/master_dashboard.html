@@ -66,9 +66,14 @@
 
         <!-- Users Section -->
         <section id="usersSection" class="content-section">
-            <div class="section-header">
-                <h2>👥 Usuários do Sistema</h2>
-                <button class="btn btn-primary" onclick="openUserModal()">+ Novo Usuário</button>
+            <div class="section-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>👥 Lista de Usuários</h2>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="searchUser" placeholder="🔍 Buscar usuário..."
+                        style="padding: 8px 12px; border-radius: 6px; border: 1px solid #374151; background: #1F2937; color: #F3F4F6;">
+                    <button class="btn btn-primary" onclick="openUserModal()">+ Novo Usuário</button>
+                </div>
             </div>
 
             <div class="table-container">
@@ -104,6 +109,14 @@
                     <div class="form-group">
                         <label for="profileEmail">Email</label>
                         <input type="email" id="profileEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="profileCpfCnpj">CPF/CNPJ</label>
+                        <input type="text" id="profileCpfCnpj" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                    </div>
+                    <div class="form-group">
+                        <label for="profileEndereco">Endereço</label>
+                        <input type="text" id="profileEndereco" placeholder="Rua, número, bairro, cidade">
                     </div>
                     <div class="form-group">
                         <label for="profilePassword">Nova Senha (deixe em branco para manter)</label>
@@ -168,7 +181,7 @@
         </div>
     </div>
 
-    <script src="master_script.js"></script>
+    <script src="master_script.js?v=4"></script>
 </body>
 
 </html>
