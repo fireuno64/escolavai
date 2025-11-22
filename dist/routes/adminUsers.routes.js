@@ -1,0 +1,15 @@
+import { Router } from 'express';
+import { AdminUserController } from '../controllers/AdminUserController.js';
+import { requireMaster } from '../middlewares/MasterMiddleware.js';
+import { authMiddleware } from '../middlewares/authMiddleware.js';
+const router = Router();
+const controller = new AdminUserController();
+router.use(authMiddleware);
+router.use(requireMaster);
+router.use(requireMaster);
+router.get('/', (req, res) => controller.listAdmins(req, res));
+router.post('/', (req, res) => controller.createAdmin(req, res));
+router.put('/:id', (req, res) => controller.updateAdmin(req, res));
+router.put('/:id/toggle-active', (req, res) => controller.toggleActive(req, res));
+router.delete('/:id', (req, res) => controller.deleteAdmin(req, res));
+export default router;

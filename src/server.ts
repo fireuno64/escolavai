@@ -14,7 +14,7 @@ import authRoutes from './routes/auth.routes.js';
 import chatbotRoutes from './routes/chatbot.routes.js';
 import criancaRoutes from './routes/crianca.routes.js';
 import adminUsersRoutes from './routes/adminUsers.routes.js';
-import contractRoutes from './routes/contract.routes.js';
+import contractRoutes from './routes/contrato.routes.js';
 import escolaRoutes from './routes/escola.routes.js';
 
 const app = express();

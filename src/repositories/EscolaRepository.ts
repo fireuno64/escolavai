@@ -5,6 +5,9 @@ export interface EscolaDTO {
     id?: number;
     nome: string;
     endereco?: string;
+    cep?: string;
+    numero?: string;
+    complemento?: string;
     contato?: string;
     telefone?: string;
     email?: string;
@@ -13,8 +16,18 @@ export interface EscolaDTO {
 
 export class EscolaRepository {
     async create(data: EscolaDTO) {
-        const query = 'INSERT INTO escola (nome, endereco, contato, telefone, email, admin_id) VALUES (?, ?, ?, ?, ?, ?)';
-        const params = [data.nome, data.endereco, data.contato, data.telefone, data.email, data.adminId];
+        const query = 'INSERT INTO escola (nome, endereco, cep, numero, complemento, contato, telefone, email, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        const params = [
+            data.nome,
+            data.endereco || null,
+            data.cep || null,
+            data.numero || null,
+            data.complemento || null,
+            data.contato || null,
+            data.telefone || null,
+            data.email || null,
+            data.adminId
+        ];
         const [result] = await connection.query<ResultSetHeader>(query, params);
         return { id: result.insertId, ...data };
     }
@@ -38,11 +51,14 @@ export class EscolaRepository {
         const fields: string[] = [];
         const values: any[] = [];
 
-        if (data.nome) { fields.push('nome = ?'); values.push(data.nome); }
-        if (data.endereco) { fields.push('endereco = ?'); values.push(data.endereco); }
-        if (data.contato) { fields.push('contato = ?'); values.push(data.contato); }
-        if (data.telefone) { fields.push('telefone = ?'); values.push(data.telefone); }
-        if (data.email) { fields.push('email = ?'); values.push(data.email); }
+        if (data.nome !== undefined) { fields.push('nome = ?'); values.push(data.nome); }
+        if (data.endereco !== undefined) { fields.push('endereco = ?'); values.push(data.endereco); }
+        if (data.cep !== undefined) { fields.push('cep = ?'); values.push(data.cep); }
+        if (data.numero !== undefined) { fields.push('numero = ?'); values.push(data.numero); }
+        if (data.complemento !== undefined) { fields.push('complemento = ?'); values.push(data.complemento); }
+        if (data.contato !== undefined) { fields.push('contato = ?'); values.push(data.contato); }
+        if (data.telefone !== undefined) { fields.push('telefone = ?'); values.push(data.telefone); }
+        if (data.email !== undefined) { fields.push('email = ?'); values.push(data.email); }
 
         if (fields.length === 0) return existing;
 

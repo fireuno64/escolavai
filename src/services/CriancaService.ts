@@ -49,11 +49,30 @@ export class CriancaService {
     }
 
     async getCriancas(adminId: number) {
-        return repository.findAll(adminId);
+        const criancas = await repository.findAll(adminId);
+        return criancas.map(this.mapToCamelCase);
     }
 
     async getCriancasByResponsavel(responsavelId: number, adminId: number) {
-        return repository.findByResponsavelId(responsavelId, adminId);
+        const criancas = await repository.findByResponsavelId(responsavelId, adminId);
+        return criancas.map(this.mapToCamelCase);
+    }
+
+    private mapToCamelCase(crianca: any) {
+        return {
+            id: crianca.id,
+            nome: crianca.nome,
+            dataNascimento: crianca.data_nascimento,
+            escolaId: crianca.escola_id,
+            escola: crianca.nome_escola || crianca.escola,
+            horario: crianca.horario,
+            horarioEntrada: crianca.horario_entrada,
+            horarioSaida: crianca.horario_saida,
+            tipoTransporte: crianca.tipo_transporte,
+            responsavelId: crianca.responsavel_id,
+            dataInicioContrato: crianca.data_inicio_contrato,
+            valorContratoAnual: crianca.valor_contrato_anual
+        };
     }
 
     async getCriancaById(id: number, adminId: number) {
@@ -65,9 +84,25 @@ export class CriancaService {
     }
 
     async updateCrianca(id: number, data: Partial<CriancaInput>, adminId: number) {
+        // Check if trying to update contract fields
+        const isUpdatingContractFields = data.dataInicioContrato !== undefined || data.valorContratoAnual !== undefined;
+
+        if (isUpdatingContractFields) {
+            // Import ContratoRepository to check for active contract
+            const { ContratoRepository } = await import('../repositories/ContratoRepository.js');
+            const contratoRepo = new ContratoRepository();
+
+            // Check if child has an active contract
+            const activeContract = await contratoRepo.findActiveByCriancaId(id);
+
+            if (activeContract) {
+                throw new Error('Não é possível alterar valor ou data de início de um contrato ativo. Use a funcionalidade "Criar Novo Contrato" para substituir o contrato atual.');
+            }
+        }
+
         const result = await repository.update(id, data, adminId);
 
-        // Regenerate payments if contract data changed
+        // Regenerate payments if contract data changed (only if no active contract)
         if (result && data.dataInicioContrato && data.valorContratoAnual && data.valorContratoAnual > 0) {
             console.log('🔄 Regenerating payments for updated child...');
             await pagamentoService.regeneratePaymentsForChild(

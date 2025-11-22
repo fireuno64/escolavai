@@ -40,7 +40,13 @@ class EscolaVaiChatbot:
                 "patterns": [
                     "pagamento", "pagar", "mensalidade", "valor", "quanto custa",
                     "preço", "parcela", "vencimento", "quando vence", "data pagamento",
-                    "boleto", "fatura", "cobrança"
+                    "boleto", "fatura", "cobrança",
+                    "fale sobre pagamentos", "me explique sobre pagamentos", "como funcionam os pagamentos",
+                    "quero saber sobre pagamentos", "informações de pagamento", "detalhes do pagamento",
+                    "sobre pagamento", "explica pagamento", "dúvida pagamento",
+                    "pagamentos atrasados", "pagamentos em dia", "histórico de pagamentos",
+                    "o que é pagamento", "o que são pagamentos", "pra que serve pagamento",
+                    "pagamneto", "pagmento", "pagameto", "vencimneto" # Typos comuns
                 ],
                 "responses": [
                     "Os pagamentos vencem todo dia 5 de cada mês. Você pode visualizar todos os pagamentos pendentes na seção 'Pagamentos' do sistema.",
@@ -50,7 +56,9 @@ class EscolaVaiChatbot:
             "contrato": {
                 "patterns": [
                     "contrato", "acordo", "documento", "pdf", "gerar contrato",
-                    "baixar contrato", "imprimir contrato", "como gerar"
+                    "baixar contrato", "imprimir contrato", "como gerar",
+                    "o que é contrato", "pra que serve contrato", "onde fica contrato",
+                    "contarto", "contrata", "ducumento" # Typos comuns
                 ],
                 "responses": [
                     "Para gerar um contrato, vá até a seção 'Responsáveis', encontre o responsável desejado e clique no botão 'PDF'. O contrato será gerado automaticamente.",
@@ -74,7 +82,9 @@ class EscolaVaiChatbot:
                     "fazer cadastro", "fazer registro", "realizar cadastro",
                     "cadastrar novo", "adicionar novo", "criar novo",
                     "cadastro de responsável", "cadastro de criança", "cadastro de escola",
-                    "registro de responsável", "registro de criança", "registro de escola"
+                    "registro de responsável", "registro de criança", "registro de escola",
+                    "o que é cadastro", "pra que serve cadastro",
+                    "cadastror", "cadastra", "resgistrar" # Typos comuns
                 ],
                 "responses": [
                     "Para cadastrar um novo responsável, clique em '+ Novo Responsável' na seção de Responsáveis. Para cadastrar uma criança, use o botão '+ Nova Criança'.",
@@ -96,7 +106,10 @@ class EscolaVaiChatbot:
                     "excluir escola", "deletar escola", "remover escola",
                     "escola ativa", "escolas ativas", "quantas escolas",
                     "informações da escola", "dados da escola",
-                    "nome da escola", "endereço da escola", "telefone da escola"
+                    "nome da escola", "endereço da escola", "telefone da escola",
+                    "o que é escola", "o que são escolas", "pra que serve escola",
+                    "escolas cadastradas", "cadastro de escola",
+                    "escola", "escolas", "colegio", "instituicao"
                 ],
                 "responses": [
                     "Para gerenciar escolas, acesse a seção 'Escolas' no menu. Lá você pode adicionar, editar ou remover escolas do sistema.",
@@ -123,7 +136,9 @@ class EscolaVaiChatbot:
                     "criança e escola", "criança e responsável",
                     "dados da criança", "informações da criança",
                     "nome da criança", "idade da criança", "escola da criança",
-                    "quantas crianças", "total de crianças", "crianças cadastradas"
+                    "quantas crianças", "total de crianças", "crianças cadastradas",
+                    "o que é criança", "o que é aluno", "cadastro de crianças",
+                    "crianca", "criancas", "alunno", "estudante" # Typos
                 ],
                 "responses": [
                     "Para cadastrar uma criança, vá em 'Crianças' e clique em '+ Nova Criança'. Você precisará informar nome, data de nascimento, escola e responsável.",
@@ -134,7 +149,8 @@ class EscolaVaiChatbot:
             "ajuda": {
                 "patterns": [
                     "ajuda", "help", "socorro", "não sei", "como funciona",
-                    "tutorial", "instruções", "dúvida", "problema"
+                    "tutorial", "instruções", "dúvida", "problema",
+                    "o que fazer", "estou perdido", "me ajuda"
                 ],
                 "responses": [
                     "Posso ajudar com: Pagamentos, Contratos, Cadastros, Escolas e Crianças. Sobre o que você gostaria de saber?",
@@ -188,7 +204,9 @@ class EscolaVaiChatbot:
                     "responsável financeiro", "responsável legal",
                     "vincular responsável", "associar responsável",
                     "telefone do responsável", "email do responsável", "endereço do responsável",
-                    "cpf do responsável", "rg do responsável"
+                    "cpf do responsável", "rg do responsável",
+                    "o que é responsável", "o que são responsáveis", "pra que serve responsável",
+                    "responsalvel", "responsave", "pais e maes" # Typos
                 ],
                 "responses": [
                     "Na seção 'Responsáveis' você pode gerenciar todos os pais e tutores. É possível cadastrar, editar, excluir e gerar contratos para cada responsável.",
@@ -202,7 +220,11 @@ class EscolaVaiChatbot:
                     "cards", "métricas", "números", "totais", "indicadores",
                     "o que é dashboard", "como funciona dashboard", "para que serve dashboard",
                     "responsáveis cadastrados", "crianças cadastradas", "pagamentos pendentes",
-                    "escolas ativas", "quantos responsáveis", "quantas crianças"
+                    "escolas ativas", "quantos responsáveis", "quantas crianças",
+                    "fale sobre dashboard", "me explique o dashboard", "quero saber sobre dashboard",
+                    "tela inicial", "página inicial", "home", "inicio", "início",
+                    "explica dashboard", "sobre dashboard", "detalhes dashboard",
+                    "dashbord", "dashborad", "painel inicial" # Typos
                 ],
                 "responses": [
                     "O Dashboard é a tela inicial que mostra um resumo geral do sistema com 4 cards principais: Total de Responsáveis, Crianças Cadastradas, Pagamentos Pendentes e Escolas Ativas. É sua visão geral do sistema!",
@@ -223,9 +245,9 @@ class EscolaVaiChatbot:
                 training_data.append(pattern.lower())
                 training_labels.append(intent_name)
         
-        # Cria pipeline com TF-IDF e Naive Bayes
+        # Cria pipeline com TF-IDF e Naive Bayes (analyzer='char_wb' para tolerância a erros de digitação)
         self.pipeline = Pipeline([
-            ('tfidf', TfidfVectorizer(ngram_range=(1, 2))),
+            ('tfidf', TfidfVectorizer(analyzer='char_wb', ngram_range=(3, 5))),
             ('clf', MultinomialNB())
         ])
         

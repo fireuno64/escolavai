@@ -59,6 +59,7 @@ export class ContractController {
     async generateContract(req: Request, res: Response) {
         try {
             const responsavelId = parseInt(req.params.responsavelId);
+            const childId = req.query.childId ? parseInt(req.query.childId as string) : null;
             const adminId = (req as any).user?.id || 1;
 
             // 1. Fetch Admin Data (CONTRATADO)
@@ -78,29 +79,35 @@ export class ContractController {
 
             // 2. Fetch Responsavel Data
             const responsavel = await responsavelService.getResponsavelById(responsavelId, adminId);
+
             if (!responsavel) {
                 return res.status(404).json({ error: 'Responsável não encontrado.' });
             }
 
-            // 3. Fetch Children Data
-            const [children] = await connection.execute<RowDataPacket[]>(
-                'SELECT * FROM crianca WHERE responsavel_id = ?',
-                [responsavelId]
-            );
+            // 3. Fetch Child Data
+            let query = 'SELECT * FROM crianca WHERE responsavel_id = ?';
+            const params: any[] = [responsavelId];
 
-            if (children.length === 0) {
-                return res.status(400).json({ error: 'Responsável não possui crianças cadastradas.' });
+            if (childId) {
+                query += ' AND id = ?';
+                params.push(childId);
             }
 
-            // Calculate contract values from first child
-            const primeiracrianca = children[0];
-            const valorAnual = parseFloat(primeiracrianca.valor_contrato_anual || '0');
+            const [children] = await connection.execute<RowDataPacket[]>(query, params);
+
+            if (children.length === 0) {
+                return res.status(404).json({ error: 'Criança não encontrada ou não pertence a este responsável.' });
+            }
+
+            const child = children[0];
+            const valorAnual = parseFloat(child.valorContratoAnual || child.valor_contrato_anual || '0');
             const valorMensal = valorAnual / 12;
             const valorAnualExtenso = numeroParaExtenso(valorAnual);
 
             // Calculate dates
-            const dataInicio = primeiracrianca.data_inicio_contrato
-                ? new Date(primeiracrianca.data_inicio_contrato)
+            const dataInicioStr = child.dataInicioContrato || child.data_inicio_contrato;
+            const dataInicio = dataInicioStr
+                ? new Date(dataInicioStr)
                 : new Date();
             const dataTermino = new Date(dataInicio);
             dataTermino.setFullYear(dataTermino.getFullYear() + 1);
@@ -114,8 +121,10 @@ export class ContractController {
             const doc = new PDFDocument({ margin: 40, size: 'A4' });
 
             // Set response headers
+            const currentYear = new Date().getFullYear();
+            const childNameForFile = child.nome.toLowerCase().replace(/\s+/g, '_').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             res.setHeader('Content-Type', 'application/pdf');
-            res.setHeader('Content-Disposition', `attachment; filename=contrato_${responsavel.nome.replace(/\s+/g, '_')}.pdf`);
+            res.setHeader('Content-Disposition', `attachment; filename=contrato_${childNameForFile}_${currentYear}.pdf`);
 
             doc.pipe(res);
 
@@ -137,18 +146,25 @@ export class ContractController {
             doc.fontSize(9).font('Helvetica')
                 .text('Pelo presente CONTRATO PARTICULAR DE PRESTAÇÃO DE SERVIÇO DE TRANSPORTE ESCOLAR, de um lado ', { continued: false });
 
+            // Format address
+            let responsavelEndereco = responsavel.endereco || '';
+            if (responsavel.numero) responsavelEndereco += `, ${responsavel.numero}`;
+            if (responsavel.complemento) responsavelEndereco += ` - ${responsavel.complemento}`;
+            if (responsavel.cep) responsavelEndereco += ` - CEP: ${responsavel.cep}`;
+
             doc.font('Helvetica-Bold').text(adminNome.toUpperCase(), { continued: true });
             doc.font('Helvetica').text(`, com o endereço à ${adminEndereco}, C.G.C/C.P.F. Nº ${adminCpfCnpj}, doravante denominado `, { continued: true });
             doc.font('Helvetica-Bold').text('CONTRATADO', { continued: true });
             doc.font('Helvetica').text(', e de outro lado ', { continued: true });
             doc.font('Helvetica-Bold').text(responsavel.nome.toUpperCase(), { continued: true });
-            doc.font('Helvetica').text(` RG. ${responsavel.rg || 'N/A'} C.P.F. ${responsavel.cpf} residente à ${responsavel.endereco} Cidade SÃO PAULO Estado S.P doravante denominado `, { continued: true });
+            doc.font('Helvetica').text(` RG. ${responsavel.rg || 'N/A'} C.P.F. ${responsavel.cpf} residente à ${responsavelEndereco} Cidade SÃO PAULO Estado S.P doravante denominado `, { continued: true });
             doc.font('Helvetica-Bold').text('CONTRATANTE', { continued: true });
             doc.font('Helvetica').text(', tem entre si justo e contratado na melhor forma de direito as cláusulas seguintes:');
             doc.moveDown(0.8);
 
             // Cláusulas
-            const tipoTransporte = primeiracrianca.tipo_transporte || 'ida_volta';
+            // Check for both camelCase and snake_case to be safe
+            const tipoTransporte = child.tipoTransporte || child.tipo_transporte || 'ida_volta';
             let transporteTexto = '';
             if (tipoTransporte === 'ida_volta') {
                 transporteTexto = '(X) sua residência à escola e vice versa ( ) só ida para escola ( ) só retorno para casa';
@@ -159,7 +175,7 @@ export class ContractController {
             }
 
             doc.fontSize(9).font('Helvetica-Bold').text('CLÁUSULA 1ª - ', { continued: true });
-            doc.font('Helvetica').text(`O Contratado compromete-se a fazer o transporte escolar do aluno (a) ${primeiracrianca.nome} de ${transporteTexto}; em período normal de aulas, em conformidade com cadastro anexo.`);
+            doc.font('Helvetica').text(`O Contratado compromete-se a fazer o transporte escolar do aluno (a) ${child.nome} de ${transporteTexto}; em período normal de aulas, em conformidade com cadastro anexo.`);
             doc.moveDown(0.5);
 
             doc.font('Helvetica-Bold').text('CLÁUSULA 2ª - ', { continued: true });
@@ -233,10 +249,10 @@ export class ContractController {
 
             doc.end();
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Erro ao gerar contrato:', error);
             if (!res.headersSent) {
-                res.status(500).json({ error: 'Erro ao gerar contrato.' });
+                res.status(500).json({ error: 'Erro ao gerar contrato: ' + error.message });
             }
         }
     }

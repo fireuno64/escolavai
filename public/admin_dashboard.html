@@ -51,10 +51,6 @@
                     <h3>Valor Total de Vencidos</h3>
                     <div class="value" id="totalVencidos" style="color: var(--danger);">R$ 0,00</div>
                 </div>
-                <div class="card">
-                    <h3>Pagamentos Vencidos</h3>
-                    <div class="value" id="pagamentosVencidos" style="color: var(--danger);">0</div>
-                </div>
                 <!-- Chart moved to grid -->
                 <div class="card" style="grid-column: span 2;">
                     <h3 style="margin-bottom: 10px; font-size: 1rem;">Previsão de Faturamento Mensal</h3>
@@ -258,8 +254,14 @@
                 <div class="form-group"><label>Email *</label><input type="email" id="respEmail" required></div>
                 <div class="form-group"><label>Telefone *</label><input type="text" id="respTelefone" maxlength="15"
                         placeholder="(00) 00000-0000" required></div>
+                <div class="form-group"><label>CEP</label><input type="text" id="respCep" maxlength="9"
+                        placeholder="00000-000"></div>
                 <div class="form-group"><label>Endereço *</label><input type="text" id="respEndereco"
-                        placeholder="Rua, número, bairro, cidade" required></div>
+                        placeholder="Rua, bairro, cidade" required></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group"><label>Número *</label><input type="text" id="respNumero" required></div>
+                    <div class="form-group"><label>Complemento</label><input type="text" id="respComplemento"></div>
+                </div>
 
                 <div class="form-group"><label>Senha *</label><input type="password" id="respSenha"
                         placeholder="Digite a senha" required></div>
@@ -299,9 +301,6 @@
                 <div class="modal-actions">
                     <button type="button" class="btn btn-cancel"
                         onclick="closeModal('modalResponsavel')">Cancelar</button>
-                    <button type="button" id="btnPrintContract" class="btn"
-                        style="background-color: #6366f1; color: white; display: none; margin-right: 10px;"
-                        onclick="printContractFromModal()">🖨️ Contrato</button>
                     <button type="submit" class="btn btn-primary">Salvar</button>
                 </div>
             </form>
@@ -339,8 +338,14 @@
                 <div class="form-group"><label>Email</label><input type="email" id="perfilEmail" required></div>
                 <div class="form-group"><label>CPF/CNPJ</label><input type="text" id="perfilCpfCnpj"
                         placeholder="000.000.000-00 ou 00.000.000/0000-00"></div>
+                <div class="form-group"><label>CEP</label><input type="text" id="perfilCep" maxlength="9"
+                        placeholder="00000-000"></div>
                 <div class="form-group"><label>Endereço</label><input type="text" id="perfilEndereco"
-                        placeholder="Rua, número, bairro, cidade"></div>
+                        placeholder="Rua, bairro, cidade"></div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group"><label>Número</label><input type="text" id="perfilNumero"></div>
+                    <div class="form-group"><label>Complemento</label><input type="text" id="perfilComplemento"></div>
+                </div>
                 <div class="form-group"><label>Nova Senha (deixe em branco para manter)</label><input type="password"
                         id="perfilSenha"></div>
                 <div class="modal-actions">
@@ -362,8 +367,22 @@
                     <input type="text" id="escolaNome" required>
                 </div>
                 <div class="form-group">
+                    <label>CEP</label>
+                    <input type="text" id="escolaCep" maxlength="9" placeholder="00000-000">
+                </div>
+                <div class="form-group">
                     <label>Endereço</label>
                     <input type="text" id="escolaEndereco">
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>Número</label>
+                        <input type="text" id="escolaNumero">
+                    </div>
+                    <div class="form-group">
+                        <label>Complemento</label>
+                        <input type="text" id="escolaComplemento">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Nome do Contato</label>
@@ -378,6 +397,50 @@
                     <input type="email" id="escolaEmail">
                 </div>
                 <button type="submit" class="btn btn-primary" style="width: 100%;">Salvar Escola</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalSelecaoContrato" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <span class="close" onclick="closeModal('modalSelecaoContrato')">&times;</span>
+            <h2>Selecionar Contrato</h2>
+            <p style="color: var(--text-gray); margin-bottom: 15px;">Escolha qual contrato deseja imprimir:</p>
+            <div id="contractList" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Buttons will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Novo Contrato -->
+    <div id="modalNovoContrato" class="modal">
+        <div class="modal-content" style="width: 500px;">
+            <span class="close" onclick="closeModal('modalNovoContrato')">&times;</span>
+            <h2>Criar Novo Contrato</h2>
+            <div
+                style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+                <strong style="color: #EF4444;">⚠️ ATENÇÃO:</strong>
+                <ul style="margin: 8px 0 0 20px; color: var(--text-gray); font-size: 0.9rem;">
+                    <li>O contrato atual será CANCELADO</li>
+                    <li>Parcelas pendentes serão REMOVIDAS</li>
+                    <li>Novas parcelas serão GERADAS</li>
+                </ul>
+            </div>
+            <form id="formNovoContrato">
+                <div class="form-group">
+                    <label>Data de Início *</label>
+                    <input type="date" id="novoContratoDataInicio" required>
+                </div>
+                <div class="form-group">
+                    <label>Valor Anual (R$) *</label>
+                    <input type="number" id="novoContratoValor" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Motivo da Substituição</label>
+                    <textarea id="novoContratoMotivo" rows="3"
+                        placeholder="Ex: Reajuste de valor, mudança de condições..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Criar Novo Contrato</button>
             </form>
         </div>
     </div>
@@ -443,9 +506,7 @@
             <button class="chatbot-close" onclick="toggleChatbot()">×</button>
         </div>
         <div class="chatbot-messages" id="chatbotMessages">
-            <div class="chatbot-message bot">
-                Olá! Sou o assistente virtual da Escola Vai. Como posso ajudar?
-            </div>
+            <!-- Initial message will be added dynamically -->
         </div>
         <div class="chatbot-input-container">
             <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Digite sua mensagem..."

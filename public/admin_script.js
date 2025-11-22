@@ -203,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadResponsaveis();
         loadPagamentos();
         loadEscolas();
+        renderRevenueChart(); // Initialize revenue forecast chart
         showSection('dashboard'); // Default view for Admin
     }
 
@@ -221,7 +222,120 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formUsuario = document.getElementById('formUsuario');
     if (formUsuario) formUsuario.addEventListener('submit', handleUserSubmit);
+
+    const formPerfil = document.getElementById('formPerfil');
+    if (formPerfil) formPerfil.addEventListener('submit', handleProfileSubmit);
+
+    // Initialize CEP Integration
+    setupCepIntegration();
 });
+
+// Revenue Forecast Chart
+let revenueChartInstance = null;
+
+function renderRevenueChart() {
+    const ctx = document.getElementById('revenueChart');
+    if (!ctx) return;
+
+    // Get next 6 months
+    const months = [];
+    const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const today = new Date();
+
+    for (let i = 0; i < 6; i++) {
+        const date = new Date(today.getFullYear(), today.getMonth() + i, 1);
+        months.push({
+            label: `${monthNames[date.getMonth()]}/${date.getFullYear()}`,
+            month: date.getMonth() + 1,
+            year: date.getFullYear()
+        });
+    }
+
+    // Calculate projected revenue for each month based on active contracts
+    const projectedRevenue = months.map(m => {
+        // Sum all payments for this month
+        const monthlyTotal = pagamentos.filter(p => {
+            const paymentDate = new Date(p.dataPagamento);
+            return paymentDate.getMonth() + 1 === m.month &&
+                paymentDate.getFullYear() === m.year;
+        }).reduce((sum, p) => sum + parseFloat(p.valor || 0), 0);
+
+        return monthlyTotal;
+    });
+
+    // Destroy previous chart instance if exists
+    if (revenueChartInstance) {
+        revenueChartInstance.destroy();
+    }
+
+    // Create new chart
+    revenueChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months.map(m => m.label),
+            datasets: [{
+                label: 'Receita Projetada',
+                data: projectedRevenue,
+                borderColor: '#10B981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4, // Smooth curve
+                pointRadius: 4,
+                pointBackgroundColor: '#10B981',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: '#1F2937',
+                    titleColor: '#F3F4F6',
+                    bodyColor: '#F3F4F6',
+                    borderColor: '#374151',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: function (context) {
+                            return 'R$ ' + context.parsed.y.toFixed(2).replace('.', ',');
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(55, 65, 81, 0.3)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#9CA3AF',
+                        callback: function (value) {
+                            return 'R$ ' + value.toFixed(0);
+                        }
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#9CA3AF'
+                    }
+                }
+            }
+        }
+    });
+}
 
 // Navigation
 function showSection(sectionId) {
@@ -469,7 +583,7 @@ function renderResponsaveisTable() {
             <td>${r.email}</td>
             <td>${r.telefone}</td>
             <td>
-                <button class="btn btn-sm" style="background-color: #6366f1;" onclick="downloadContract(${r.id})" title="Gerar Contrato">📄 PDF</button>
+                <button class="btn btn-sm" style="background-color: #6366f1;" onclick="openContractSelectionModal(${r.id})" title="Gerar Contrato">📄 PDF</button>
             </td>
             <td>
                 <button class="btn btn-primary" style="padding: 6px 12px; margin-right: 5px;" onclick="editResponsavel(${r.id})">✏️ Editar</button>
@@ -481,27 +595,84 @@ function renderResponsaveisTable() {
     document.getElementById('totalResponsaveis').innerText = dataToRender.length;
 }
 
-async function downloadContract(responsavelId) {
-    try {
-        showNotification('Gerando contrato...', 'info');
+async function openContractSelectionModal(responsavelId) {
+    // showNotification('Verificando contratos...', 'info'); // Removed as requested
 
-        const res = await fetch(`${API_URL}/contracts/${responsavelId}/pdf`, {
+    try {
+        const res = await fetch(`${API_URL}/criancas/responsavel/${responsavelId}`, {
             headers: { 'Authorization': `Bearer ${currentUser.token}` }
         });
 
         if (res.ok) {
+            const children = await res.json();
+
+            if (children.length === 0) {
+                showNotification('Nenhuma criança cadastrada para este responsável.', 'warning');
+                return;
+            }
+
+            // If only one child, download directly
+            if (children.length === 1) {
+                downloadContract(responsavelId, children[0].id);
+                return;
+            }
+
+            // Multiple children: show modal
+            const list = document.getElementById('contractList');
+            list.innerHTML = children.map(child => `
+                <button class="btn" style="background: #374151; text-align: left; padding: 12px; display: flex; justify-content: space-between; align-items: center;" 
+                    onclick="downloadContract(${responsavelId}, ${child.id}); closeModal('modalSelecaoContrato')">
+                    <span>
+                        <strong>${child.nome}</strong>
+                        <div style="font-size: 0.8rem; color: var(--text-gray);">Escola: ${child.escola || 'Não informada'}</div>
+                    </span>
+                    <span>🖨️</span>
+                </button>
+            `).join('');
+
+            openModal('modalSelecaoContrato');
+
+        } else {
+            showNotification('Erro ao buscar crianças.', 'error');
+        }
+    } catch (error) {
+        console.error(error);
+        showNotification('Erro ao buscar crianças.', 'error');
+    }
+}
+
+async function downloadContract(responsavelId, childId = null) {
+    try {
+        let url = `${API_URL}/contracts/${responsavelId}/pdf`;
+        if (childId) {
+            url += `?childId=${childId}`;
+        }
+
+        const res = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+
+        if (res.ok) {
+            // Extract filename from Content-Disposition header
+            const contentDisposition = res.headers.get('Content-Disposition');
+            let filename = 'contrato.pdf'; // Default fallback
+
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, '');
+                }
+            }
+
             const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
+            const blobUrl = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            // Filename is usually set by Content-Disposition header, but we can force one if needed
-            // a.download = 'contrato.pdf'; 
-            a.download = `contrato_responsavel_${responsavelId}.pdf`;
+            a.href = blobUrl;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
-            window.URL.revokeObjectURL(url);
-            a.remove();
-            showNotification('Contrato baixado com sucesso!', 'success');
+            window.URL.revokeObjectURL(blobUrl);
+            document.body.removeChild(a);
         } else {
             const data = await res.json();
             showNotification(data.error || 'Erro ao gerar contrato.', 'error');
@@ -862,134 +1033,18 @@ function updateStats() {
     renderRevenueChart();
 }
 
-let revenueChartInstance = null;
-
-function renderRevenueChart() {
-    const ctx = document.getElementById('revenueChart');
-    if (!ctx) return;
-
-    // Aggregate data: Pending payments by month
-    const monthlyData = {};
-    const today = new Date();
-
-    // Initialize next 6 months
-    for (let i = 0; i < 6; i++) {
-        const d = new Date(today.getFullYear(), today.getMonth() + i, 1);
-        const key = d.toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
-        monthlyData[key] = 0;
-    }
-
-    pagamentos.forEach(p => {
-        if (p.status === 'Pendente') {
-            const pDate = new Date(p.dataPagamento);
-            // Only consider future or current month payments for forecast
-            // (Or should we include past due? User asked for "forecast", usually future. 
-            // But "vencidos" are also pending. Let's include all pending grouped by their due month)
-            const key = pDate.toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
-
-            // Only add if it falls within our initialized range or just add it dynamically?
-            // Let's add dynamically but sort later.
-            if (monthlyData[key] !== undefined) {
-                monthlyData[key] += parseFloat(p.valor);
-            } else {
-                // If it's a future month beyond 6 months, or a past month
-                // For forecast, maybe we want to see past due in a separate "Vencidos" bar?
-                // For now, let's stick to the next 6 months as a "Forecast".
-                // If the user wants "Vencidos", they have the card.
-                // Let's check if it is in the future or current month
-                if (pDate >= new Date(today.getFullYear(), today.getMonth(), 1)) {
-                    // It's future/current, but outside our 6 month init?
-                    // Let's just accumulate all pending by month.
-                    if (!monthlyData[key]) monthlyData[key] = 0;
-                    monthlyData[key] += parseFloat(p.valor);
-                }
-            }
-        }
-    });
-
-    // Sort keys chronologically
-    const sortedKeys = Object.keys(monthlyData).sort((a, b) => {
-        const [monthA, yearA] = a.split(' ');
-        const [monthB, yearB] = b.split(' ');
-        // Simple parsing might fail with locale. Let's use a helper or just rely on the initialization order if we stick to fixed range.
-        // Better: create an array of objects { label, value, dateObj } and sort by dateObj.
-        return 0; // Placeholder if we rely on pre-filled keys
-    });
-
-    // Re-doing aggregation for proper sorting
-    const aggregator = [];
-    pagamentos.forEach(p => {
-        if (p.status === 'Pendente') {
-            const d = new Date(p.dataPagamento);
-            // Filter: only show from current month onwards
-            const startOfCurrentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            if (d >= startOfCurrentMonth) {
-                const label = d.toLocaleString('pt-BR', { month: 'short', year: 'numeric' });
-                const existing = aggregator.find(item => item.label === label);
-                if (existing) {
-                    existing.value += parseFloat(p.valor);
-                } else {
-                    aggregator.push({ label, value: parseFloat(p.valor), date: new Date(d.getFullYear(), d.getMonth(), 1) });
-                }
-            }
-        }
-    });
-
-    // Sort by date
-    aggregator.sort((a, b) => a.date - b.date);
-
-    // Take top 12 months
-    const finalData = aggregator.slice(0, 12);
-
-    const labels = finalData.map(item => item.label);
-    const data = finalData.map(item => item.value);
-
-    if (revenueChartInstance) {
-        revenueChartInstance.destroy();
-    }
-
-    revenueChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Previsão de Recebimento (R$)',
-                data: data,
-                backgroundColor: 'rgba(16, 185, 129, 0.5)',
-                borderColor: '#10B981',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: { color: '#9CA3AF' }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#374151' },
-                    ticks: { color: '#9CA3AF' }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { color: '#9CA3AF' }
-                }
-            }
-        }
-    });
-}
-
 // Form Handling
 async function handleResponsavelSubmit(e) {
     console.log('=== handleResponsavelSubmit CALLED ===');
     e.preventDefault();
     const form = e.target;
     const editId = form.dataset.editId;
+
+    // Get address fields separately (no concatenation)
+    const endereco = document.getElementById('respEndereco').value;
+    const numero = document.getElementById('respNumero').value;
+    const complemento = document.getElementById('respComplemento').value;
+    const cep = document.getElementById('respCep').value;
 
     console.log('Form data:', { editId });
 
@@ -1008,9 +1063,11 @@ async function handleResponsavelSubmit(e) {
         cpf: document.getElementById('respCpf').value,
         email: document.getElementById('respEmail').value,
         telefone: document.getElementById('respTelefone').value,
-        endereco: document.getElementById('respEndereco').value,
+        endereco: endereco,
+        cep: cep,
+        numero: numero,
+        complemento: complemento,
         rg: document.getElementById('respRg').value,
-        // data_inicio_contrato and valor_contrato removed from here
     };
 
     const senha = document.getElementById('respSenha').value;
@@ -1273,9 +1330,20 @@ async function editResponsavel(id) {
     document.getElementById('respCpf').value = responsavel.cpf;
     document.getElementById('respEmail').value = responsavel.email || '';
     document.getElementById('respTelefone').value = responsavel.telefone || '';
+
+    // Populate separate address fields
     document.getElementById('respEndereco').value = responsavel.endereco || '';
+    document.getElementById('respNumero').value = responsavel.numero || '';
+    document.getElementById('respComplemento').value = responsavel.complemento || '';
+    document.getElementById('respCep').value = responsavel.cep || '';
+
     document.getElementById('respRg').value = responsavel.rg || '';
-    document.getElementById('respSenha').value = '';
+
+    // Password is optional on edit
+    const senhaInput = document.getElementById('respSenha');
+    senhaInput.value = '';
+    senhaInput.required = false;
+    senhaInput.placeholder = 'Deixe em branco para manter a senha atual';
 
     // Reset children state
     currentChildren = [];
@@ -1341,7 +1409,25 @@ function deleteResponsavel(id) {
     });
 }
 
+function openNewResponsavelModal() {
+    const form = document.getElementById('formResponsavel');
+    form.reset();
+    delete form.dataset.editId;
 
+    // Password is required on create
+    const senhaInput = document.getElementById('respSenha');
+    senhaInput.required = true;
+    senhaInput.placeholder = 'Digite a senha';
+
+    document.querySelector('#modalResponsavel h2').innerText = 'Novo Responsável';
+
+    // Reset children
+    currentChildren = [];
+    renderChildrenList();
+    cancelChildForm();
+
+    openModal('modalResponsavel');
+}
 
 // School Management Functions
 function openNewEscolaModal() {
@@ -1354,20 +1440,38 @@ function openNewEscolaModal() {
 
 async function handleEscolaSubmit(e) {
     e.preventDefault();
+
     const form = e.target;
     const editId = form.dataset.editId;
+    const isEdit = !!editId;
+
+    // Get address fields separately (no concatenation)
+    const endereco = document.getElementById('escolaEndereco').value;
+    const numero = document.getElementById('escolaNumero').value;
+    const complemento = document.getElementById('escolaComplemento').value;
+    const cep = document.getElementById('escolaCep').value;
 
     const data = {
         nome: document.getElementById('escolaNome').value,
-        endereco: document.getElementById('escolaEndereco').value,
+        endereco: endereco,
+        cep: cep,
+        numero: numero,
+        complemento: complemento,
         contato: document.getElementById('escolaContato').value,
         telefone: document.getElementById('escolaTelefone').value,
         email: document.getElementById('escolaEmail').value
     };
 
+    console.log('=== handleEscolaSubmit ===');
+    console.log('Edit ID:', editId);
+    console.log('Data:', data);
+
     try {
         const url = editId ? `${API_URL}/escolas/${editId}` : `${API_URL}/escolas`;
         const method = editId ? 'PUT' : 'POST';
+
+        console.log('URL:', url);
+        console.log('Method:', method);
 
         const res = await fetch(url, {
             method: method,
@@ -1378,16 +1482,19 @@ async function handleEscolaSubmit(e) {
             body: JSON.stringify(data)
         });
 
+        console.log('Response status:', res.status);
+
         if (res.ok) {
             showNotification(editId ? 'Escola atualizada com sucesso!' : 'Escola criada com sucesso!', 'success');
             closeModal('modalEscola');
             loadEscolas();
         } else {
             const errorData = await res.json();
+            console.error('Error response:', errorData);
             showNotification(errorData.error || 'Erro ao salvar escola', 'error');
         }
     } catch (error) {
-        console.error(error);
+        console.error('Exception:', error);
         showNotification('Erro ao salvar escola', 'error');
     }
 }
@@ -1398,6 +1505,9 @@ function editEscola(id) {
 
     document.getElementById('escolaNome').value = escola.nome;
     document.getElementById('escolaEndereco').value = escola.endereco || '';
+    document.getElementById('escolaNumero').value = escola.numero || '';
+    document.getElementById('escolaComplemento').value = escola.complemento || '';
+    document.getElementById('escolaCep').value = escola.cep || '';
     document.getElementById('escolaContato').value = escola.contato || '';
     document.getElementById('escolaTelefone').value = escola.telefone || '';
     document.getElementById('escolaEmail').value = escola.email || '';
@@ -1548,13 +1658,30 @@ function renderChildrenList() {
         'so_volta': 'Somente Volta'
     };
 
+    console.log('=== renderChildrenList ===');
+    console.log('Escolas disponíveis:', escolas.length);
+    console.log('Escolas:', escolas);
+
     listView.innerHTML = currentChildren.map((child, index) => {
         // Resolve school name
-        let escolaNome = child.escola || 'Não informada';
+        let escolaNome = 'Não informada';
+
+        console.log(`Child ${index}:`, child.nome, 'escolaId:', child.escolaId, 'escola:', child.escola);
+
         if (child.escolaId) {
             const escolaObj = escolas.find(e => e.id == child.escolaId);
-            if (escolaObj) escolaNome = escolaObj.nome;
+            console.log('Found escola:', escolaObj);
+            if (escolaObj) {
+                escolaNome = escolaObj.nome;
+            }
+        } else if (child.escola) {
+            escolaNome = child.escola;
         }
+
+        // Only show contract button if child has an ID (saved)
+        const contractButton = child.id
+            ? `<button type="button" class="btn" style="padding: 6px 12px; background-color: #6366f1; color: white; font-size: 0.85rem;" onclick="downloadContract(${child.responsavelId || 'document.getElementById(\'formResponsavel\').dataset.editId'}, ${child.id})">🖨️ Contrato</button>`
+            : '';
 
         return `
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 6px; margin-bottom: 8px; border: 1px solid #374151;">
@@ -1562,18 +1689,10 @@ function renderChildrenList() {
                 <strong style="color: white;">${child.nome || 'Sem nome'}</strong>
                 <div style="font-size: 0.85rem; color: var(--text-gray); margin-top: 4px;">
                     Escola: ${escolaNome}
-                    ${child.tipoTransporte || child.tipo_transporte ? ` | Transporte: ${transporteLabels[child.tipoTransporte || child.tipo_transporte] || 'Ida e Volta'}` : ''}
-                </div>
-                <div style="font-size: 0.85rem; color: var(--text-gray); margin-top: 2px;">
-                    ${child.dataNascimento ? `Nasc: ${new Date(child.dataNascimento).toLocaleDateString('pt-BR')} | ` : ''}
-                    ${child.horarioEntrada || child.horarioSaida ? `Horário: ${child.horarioEntrada || '--'} - ${child.horarioSaida || '--'}` : ''}
-                </div>
-                <div style="font-size: 0.85rem; color: var(--text-gray); margin-top: 2px;">
-                    ${child.dataInicioContrato ? `Início: ${new Date(child.dataInicioContrato).toLocaleDateString('pt-BR')}` : ''}
-                    ${child.valorContratoAnual ? ` | Valor: R$ ${parseFloat(child.valorContratoAnual).toFixed(2)}` : ''}
                 </div>
             </div>
             <div style="display: flex; gap: 8px;">
+                ${contractButton}
                 <button type="button" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="editChild(${index})">✏️ Editar</button>
                 <button type="button" class="btn" style="padding: 6px 12px; background: var(--danger); color: white; font-size: 0.85rem;" onclick="deleteChild(${index})">🗑️ Excluir</button>
             </div>
@@ -1582,7 +1701,7 @@ function renderChildrenList() {
 }
 
 // Show form for adding/editing child
-function showChildForm(childIndex = null) {
+async function showChildForm(childIndex = null) {
     const formContainer = document.getElementById('childFormContainer');
     const formTitle = document.getElementById('childFormTitle');
     const formFields = document.getElementById('childFormFields');
@@ -1592,7 +1711,45 @@ function showChildForm(childIndex = null) {
 
     formTitle.textContent = childData ? 'Editar Criança' : 'Nova Criança';
 
+    // Check if child has active contract
+    let activeContract = null;
+    if (childData && childData.id) {
+        try {
+            console.log('🔍 Checking for active contract for child ID:', childData.id);
+            const res = await fetch(`${API_URL}/contratos/crianca/${childData.id}/active`, {
+                headers: { 'Authorization': `Bearer ${currentUser.token}` }
+            });
+            console.log('📡 Contract API response status:', res.status);
+            if (res.ok) {
+                activeContract = await res.json();
+                console.log('✅ Active contract found:', activeContract);
+            } else {
+                console.log('❌ No active contract or error:', res.status);
+            }
+        } catch (error) {
+            console.log('⚠️ Error checking contract:', error);
+        }
+    }
+
+    const hasActiveContract = !!activeContract;
+    const contractFieldsDisabled = hasActiveContract ? 'disabled' : '';
+    const contractWarning = hasActiveContract ? `
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid #F59E0B; border-radius: 6px; padding: 12px; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span style="color: #F59E0B; font-size: 1.2rem;">🔒</span>
+                <strong style="color: #F59E0B;">Contrato Ativo</strong>
+            </div>
+            <p style="margin: 0; font-size: 0.9rem; color: var(--text-gray);">
+                Os campos de contrato estão bloqueados. Para alterar valor ou data, crie um novo contrato.
+            </p>
+            <button type="button" class="btn" style="margin-top: 10px; background: #F59E0B; color: white; padding: 6px 12px; font-size: 0.85rem;" onclick="openNewContractModal(${childIndex})">
+                📝 Criar Novo Contrato
+            </button>
+        </div>
+    ` : '';
+
     formFields.innerHTML = `
+        ${contractWarning}
         <div class="form-group" style="margin-bottom: 10px;">
             <label>Nome *</label>
             <input type="text" id="childNome" value="${childData?.nome || ''}" required>
@@ -1626,11 +1783,13 @@ function showChildForm(childIndex = null) {
         </div>
         <div class="form-group" style="margin-bottom: 10px;">
             <label>Data Início Contrato *</label>
-            <input type="date" id="childDataInicio" value="${childData?.dataInicioContrato ? childData.dataInicioContrato.split('T')[0] : childData?.data_inicio_contrato ? childData.data_inicio_contrato.split('T')[0] : ''}" required>
+            <input type="date" id="childDataInicio" value="${childData?.dataInicioContrato ? childData.dataInicioContrato.split('T')[0] : childData?.data_inicio_contrato ? childData.data_inicio_contrato.split('T')[0] : ''}" ${contractFieldsDisabled} required>
+            ${hasActiveContract ? '<small style="color: #9CA3AF; font-size: 0.8rem;">🔒 Campo bloqueado - contrato ativo</small>' : ''}
         </div>
         <div class="form-group" style="margin-bottom: 10px;">
             <label>Valor Contrato (Anual) *</label>
-            <input type="number" id="childValor" step="0.01" value="${childData?.valorContratoAnual || childData?.valor_contrato_anual || ''}" required>
+            <input type="number" id="childValor" step="0.01" value="${childData?.valorContratoAnual || childData?.valor_contrato_anual || ''}" ${contractFieldsDisabled} required>
+            ${hasActiveContract ? '<small style="color: #9CA3AF; font-size: 0.8rem;">🔒 Campo bloqueado - contrato ativo</small>' : ''}
         </div>
     `;
 
@@ -1762,42 +1921,56 @@ async function handlePerfilSubmit(e) {
     if (!storedUser) return;
     const user = JSON.parse(storedUser);
 
-    const nome = document.getElementById('perfilNome').value;
-    const email = document.getElementById('perfilEmail').value;
-    const senha = document.getElementById('perfilSenha').value;
-    const cpf_cnpj = document.getElementById('perfilCpfCnpj').value;
-    const endereco = document.getElementById('perfilEndereco').value;
+    // Concatenate address
+    const enderecoBase = document.getElementById('perfilEndereco').value;
+    const numero = document.getElementById('perfilNumero').value;
+    const complemento = document.getElementById('perfilComplemento').value;
+    const cep = document.getElementById('perfilCep').value;
 
-    const data = { nome, email, cpf_cnpj, endereco };
+    let enderecoFinal = enderecoBase;
+    if (numero) enderecoFinal += `, ${numero}`;
+    if (complemento) enderecoFinal += ` - ${complemento}`;
+    if (cep) enderecoFinal += ` - CEP: ${cep}`;
+
+    const data = {
+        nome: document.getElementById('perfilNome').value,
+        email: document.getElementById('perfilEmail').value,
+        cpf_cnpj: document.getElementById('perfilCpfCnpj').value,
+        endereco: enderecoFinal
+    };
+
+    const senha = document.getElementById('perfilSenha').value;
     if (senha) {
-        data.password = senha;
+        data.senha = senha;
     }
 
     try {
-        const res = await fetch(`${API_URL}/auth/profile`, {
+        const res = await fetch(`${API_URL}/profile`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${user.token}`
+                'Authorization': `Bearer ${currentUser.token}`
             },
-            body: JSON.stringify({ id: user.id, ...data }) // Send ID if needed by backend logic
+            body: JSON.stringify(data)
         });
 
         if (res.ok) {
             const updatedUser = await res.json();
             // Update local storage
-            const newUser = { ...user, ...updatedUser };
-            localStorage.setItem('user', JSON.stringify(newUser));
+            const currentStorage = JSON.parse(localStorage.getItem('user'));
+            const newStorage = { ...currentStorage, ...updatedUser };
+            localStorage.setItem('user', JSON.stringify(newStorage));
 
-            // Update header
-            document.getElementById('headerUserName').innerText = `Olá, ${newUser.nome} `;
+            // Update UI
+            currentUser = newStorage;
+            document.querySelector('.user-info span').innerText = `Olá, ${currentUser.nome} (${currentUser.role === 'master' ? 'Master' : 'Admin'})`;
 
             showNotification('Perfil atualizado com sucesso!', 'success');
             closeModal('modalPerfil');
-            document.getElementById('perfilSenha').value = '';
+            document.getElementById('perfilSenha').value = ''; // Clear password field after successful update
         } else {
-            const errorData = await res.json();
-            showNotification(errorData.error || 'Erro ao atualizar perfil', 'error');
+            const error = await res.json();
+            showNotification(error.error || 'Erro ao atualizar perfil', 'error');
         }
     } catch (error) {
         console.error(error);
@@ -1822,10 +1995,20 @@ if (!chatSessionId) {
 
 function toggleChatbot() {
     const chatWindow = document.getElementById('chatbotWindow');
+    const messagesContainer = document.getElementById('chatbotMessages');
+    const isOpening = !chatWindow.classList.contains('active');
+
     chatWindow.classList.toggle('active');
 
-    if (chatWindow.classList.contains('active')) {
+    if (isOpening) {
         document.getElementById('chatbotInput').focus();
+
+        // Add initial greeting if this is the first time opening (no messages yet)
+        if (messagesContainer.children.length === 0) {
+            setTimeout(() => {
+                addChatMessage('Olá! Sou o assistente virtual da Escola Vai. Como posso ajudar?', 'bot');
+            }, 300);
+        }
     }
 }
 
@@ -1916,5 +2099,222 @@ function removeTypingIndicator() {
     const typingIndicator = document.getElementById('typingIndicator');
     if (typingIndicator) {
         typingIndicator.remove();
+    }
+}
+
+// CEP Integration
+function setupCepIntegration() {
+    const cepInputs = [
+        { id: 'respCep', addressId: 'respEndereco', numberId: 'respNumero' },
+        { id: 'escolaCep', addressId: 'escolaEndereco', numberId: 'escolaNumero' },
+        { id: 'perfilCep', addressId: 'perfilEndereco', numberId: 'perfilNumero' }
+    ];
+
+    cepInputs.forEach(input => {
+        const el = document.getElementById(input.id);
+        if (el) {
+            // Mask CEP
+            el.addEventListener('input', function (e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 5) {
+                    value = value.replace(/^(\d{5})(\d)/, '$1-$2');
+                }
+                e.target.value = value;
+            });
+
+            // Fetch Address on Blur
+            el.addEventListener('blur', async function () {
+                const cep = this.value.replace(/\D/g, '');
+                if (cep.length === 8) {
+                    // showNotification('Buscando CEP...', 'info');
+                    try {
+                        const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                        const data = await response.json();
+
+                        if (!data.erro) {
+                            const addressField = document.getElementById(input.addressId);
+                            const numberField = document.getElementById(input.numberId);
+
+                            if (addressField) {
+                                // Format: Rua, Bairro, Cidade - UF
+                                addressField.value = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
+
+                                // Focus on number field
+                                if (numberField) {
+                                    numberField.focus();
+                                }
+                                // showNotification('Endereço encontrado!', 'success');
+                            }
+                        } else {
+                            showNotification('CEP não encontrado.', 'warning');
+                        }
+                    } catch (error) {
+                        console.error('Erro ao buscar CEP:', error);
+                        showNotification('Erro ao buscar CEP.', 'error');
+                    }
+                }
+            });
+        }
+    });
+}
+// Append these functions to admin_script.js
+
+// ==================== CONTRACT MANAGEMENT FUNCTIONS ====================
+
+// Open new contract modal
+function openNewContractModal(childIndex) {
+    const child = currentChildren[childIndex];
+
+    if (!child || !child.id) {
+        showNotification('Criança não encontrada ou não salva', 'error');
+        return;
+    }
+
+    // Pre-fill with current values
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('novoContratoDataInicio').value = today;
+    document.getElementById('novoContratoValor').value = child.valorContratoAnual || child.valor_contrato_anual || '';
+    document.getElementById('novoContratoMotivo').value = '';
+
+    // Store child data for submission
+    document.getElementById('formNovoContrato').dataset.criancaId = child.id;
+    document.getElementById('formNovoContrato').dataset.responsavelId = child.responsavelId || child.responsavel_id;
+    document.getElementById('formNovoContrato').dataset.childIndex = childIndex;
+
+    openModal('modalNovoContrato');
+}
+
+// Initialize form handler when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initContractHandlers);
+} else {
+    initContractHandlers();
+}
+
+function initContractHandlers() {
+    const formNovoContrato = document.getElementById('formNovoContrato');
+    if (formNovoContrato && !formNovoContrato.dataset.initialized) {
+        formNovoContrato.dataset.initialized = 'true';
+        formNovoContrato.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const criancaId = parseInt(this.dataset.criancaId);
+            const responsavelId = parseInt(this.dataset.responsavelId);
+            const childIndex = parseInt(this.dataset.childIndex);
+
+            const data = {
+                criancaId,
+                responsavelId,
+                dataInicio: document.getElementById('novoContratoDataInicio').value,
+                valorAnual: parseFloat(document.getElementById('novoContratoValor').value),
+                motivoCancelamento: document.getElementById('novoContratoMotivo').value || 'Substituído por novo contrato'
+            };
+
+            try {
+                const res = await fetch(`${API_URL}/contratos`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentUser.token}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    const novoContrato = await res.json();
+                    showNotification('Novo contrato criado com sucesso!', 'success');
+                    closeModal('modalNovoContrato');
+
+                    // Update child data with new contract info
+                    currentChildren[childIndex].dataInicioContrato = data.dataInicio;
+                    currentChildren[childIndex].valorContratoAnual = data.valorAnual;
+                    currentChildren[childIndex].data_inicio_contrato = data.dataInicio;
+                    currentChildren[childIndex].valor_contrato_anual = data.valorAnual;
+
+                    // Refresh child form to show updated contract status
+                    await showChildForm(childIndex);
+
+                    // Reload pagamentos to show new installments
+                    loadPagamentos();
+                } else {
+                    const error = await res.json();
+                    showNotification(error.error || 'Erro ao criar novo contrato', 'error');
+                }
+            } catch (error) {
+                console.error('Error creating new contract:', error);
+                showNotification('Erro ao criar novo contrato', 'error');
+            }
+        });
+    }
+}
+
+// Profile Management
+async function handleProfileSubmit(e) {
+    e.preventDefault();
+
+    const id = currentUser.id;
+    const nome = document.getElementById('perfilNome').value;
+    const email = document.getElementById('perfilEmail').value;
+    const cpf_cnpj = document.getElementById('perfilCpfCnpj').value;
+    const senha = document.getElementById('perfilSenha').value;
+
+    // Address composition
+    const enderecoBase = document.getElementById('perfilEndereco').value;
+    const numero = document.getElementById('perfilNumero').value;
+    const complemento = document.getElementById('perfilComplemento').value;
+
+    let endereco = enderecoBase;
+    if (numero) endereco += `, ${numero}`;
+    if (complemento) endereco += ` - ${complemento}`;
+
+    const data = {
+        id,
+        nome,
+        email,
+        cpf_cnpj,
+        endereco
+    };
+
+    if (senha) {
+        data.password = senha;
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/auth/profile`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.token}`
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            const updatedUser = await res.json();
+
+            // Update local storage
+            const storedUser = JSON.parse(localStorage.getItem('user'));
+            const newUser = { ...storedUser, ...updatedUser };
+            // Keep the token
+            newUser.token = storedUser.token;
+
+            localStorage.setItem('user', JSON.stringify(newUser));
+            currentUser = newUser;
+
+            showNotification('Perfil atualizado com sucesso!', 'success');
+            closeModal('modalPerfil');
+
+            // Update header name
+            const userInfoElement = document.querySelector('.user-info span');
+            if (userInfoElement) {
+                userInfoElement.innerText = `Olá, ${currentUser.nome} (${currentUser.role === 'master' ? 'Master' : 'Admin'})`;
+            }
+        } else {
+            const error = await res.json();
+            showNotification(error.error || 'Erro ao atualizar perfil.', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao atualizar perfil:', error);
+        showNotification('Erro ao atualizar perfil.', 'error');
     }
 }

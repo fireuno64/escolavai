@@ -8,6 +8,9 @@ interface ResponsavelDTO {
     telefone?: string;
     email?: string;
     endereco?: string;
+    cep?: string;
+    numero?: string;
+    complemento?: string;
     enderecoId?: number;
     senha: string;
     valor_contrato?: number;
@@ -20,13 +23,16 @@ export class ResponsavelRepository {
 
     async create(data: ResponsavelDTO, adminId: number) {
         console.log('ResponsavelRepository.create - data:', data, 'adminId:', adminId);
-        const query = 'INSERT INTO responsavel (nome, cpf, telefone, email, endereco, enderecoId, senha, rg, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        const query = 'INSERT INTO responsavel (nome, cpf, telefone, email, endereco, cep, numero, complemento, enderecoId, senha, rg, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         const params = [
             data.nome,
             data.cpf,
             data.telefone || null,
             data.email || null,
             data.endereco || null,
+            data.cep || null,
+            data.numero || null,
+            data.complemento || null,
             data.enderecoId || null,
             data.senha,
             data.rg || null,

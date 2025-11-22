@@ -11,6 +11,9 @@ interface ResponsavelInput {
     telefone?: string;
     email?: string;
     endereco?: string;
+    cep?: string;
+    numero?: string;
+    complemento?: string;
     enderecoId?: number;
     senha?: string;
     valor_contrato?: number;

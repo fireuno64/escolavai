@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: escolavai_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-admin123}
+      MYSQL_DATABASE: ${DB_NAME:-escolavai_db}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - escolavai-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  backend:
+    build: .
+    container_name: escolavai_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=${DB_PASSWORD:-admin123}
+      - DB_NAME=${DB_NAME:-escolavai_db}
+      - JWT_SECRET=${JWT_SECRET:-secret}
+      - CHATBOT_API_URL=http://chatbot:5000/api/chat
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - escolavai-network
+
+  chatbot:
+    build: ./chatbot
+    container_name: escolavai_chatbot
+    restart: always
+    ports:
+      - "5000:5000"
+    networks:
+      - escolavai-network
+
+networks:
+  escolavai-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

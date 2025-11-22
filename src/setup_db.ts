@@ -1,4 +1,4 @@
-import connection from './db';
+import connection from './db.js';
 
 async function setup() {
     try {

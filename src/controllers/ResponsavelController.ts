@@ -16,7 +16,7 @@ export class ResponsavelController {
                 return res.status(401).json({ error: 'Usuário não autenticado.' });
             }
 
-            const { nome, cpf, telefone, email, endereco, enderecoId, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
+            const { nome, cpf, telefone, email, endereco, cep, numero, complemento, enderecoId, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
 
             console.log('ResponsavelController.create - Request body:', req.body);
 
@@ -43,6 +43,9 @@ export class ResponsavelController {
                 telefone,
                 email,
                 endereco,
+                cep,
+                numero,
+                complemento,
                 enderecoId: 1,
                 senha: hashedPassword,
                 rg
@@ -88,7 +91,7 @@ export class ResponsavelController {
             const id = parseInt(req.params.id);
             const adminId = (req as any).user?.id;
             if (!adminId) return res.status(401).json({ error: 'Usuário não autenticado.' });
-            const { nome, cpf, telefone, email, endereco, enderecoId, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
+            const { nome, cpf, telefone, email, endereco, cep, numero, complemento, enderecoId, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
 
             const dataToUpdate: any = {
                 nome,
@@ -96,6 +99,9 @@ export class ResponsavelController {
                 telefone,
                 email,
                 endereco,
+                cep,
+                numero,
+                complemento,
                 enderecoId,
                 valor_contrato,
                 data_inicio_contrato,

@@ -127,4 +127,70 @@ export class PagamentoService {
         // Generate new payments
         await this.generatePaymentsForChild(criancaId, responsavelId, dataInicio, valorAnual, adminId);
     }
+
+    /**
+     * Generate payments for a specific contract
+     */
+    async generatePaymentsForContract(
+        contratoId: number,
+        criancaId: number,
+        responsavelId: number,
+        dataInicio: Date | string,
+        valorAnual: number,
+        adminId: number
+    ): Promise<void> {
+        const startDate = new Date(dataInicio);
+        const valorMensal = valorAnual / 12;
+
+        // Start from next month
+        const firstPaymentDate = new Date(startDate);
+        firstPaymentDate.setMonth(firstPaymentDate.getMonth() + 1);
+        firstPaymentDate.setDate(5); // Due on 5th of each month
+
+        const payments = [];
+
+        for (let i = 0; i < 12; i++) {
+            const dueDate = new Date(firstPaymentDate);
+            dueDate.setMonth(dueDate.getMonth() + i);
+
+            payments.push({
+                responsavelId,
+                criancaId,
+                contratoId,
+                valor: valorMensal,
+                dataPagamento: dueDate.toISOString().split('T')[0],
+                status: 'Pendente',
+                adminId
+            });
+        }
+
+        // Insert all payments with contract_id
+        const query = `
+            INSERT INTO pagamento (responsavelId, criancaId, contrato_id, valor, dataPagamento, status, admin_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        for (const payment of payments) {
+            await connection.query<ResultSetHeader>(query, [
+                payment.responsavelId,
+                payment.criancaId,
+                payment.contratoId,
+                payment.valor,
+                payment.dataPagamento,
+                payment.status,
+                payment.adminId
+            ]);
+        }
+
+        console.log(`✅ Generated ${payments.length} payments for contract ${contratoId}`);
+    }
+
+    /**
+     * Delete all pending payments for a specific contract
+     */
+    async deletePaymentsByContractId(contratoId: number): Promise<void> {
+        const query = 'DELETE FROM pagamento WHERE contrato_id = ? AND status = ?';
+        await connection.query(query, [contratoId, 'Pendente']);
+        console.log(`🗑️ Deleted pending payments for contract ${contratoId}`);
+    }
 }
