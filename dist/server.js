@@ -23,6 +23,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     customCss: '.swagger-ui .topbar { display: none }',
     customSiteTitle: 'Escola Vai API Docs'
 }));
+// Servir arquivos estáticos da pasta public
+app.use(express.static('public'));
 // Rotas
 app.use('/api/responsaveis', responsavelRoutes);
 app.use('/api/pagamentos', pagamentoRoutes);

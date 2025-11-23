@@ -998,10 +998,10 @@ footer p {
         margin-left: auto;
         margin-right: auto;
     }
-
+}
 
 /* =========================================
-   PROFILE MODAL - Google Style
+   PROFILE MODAL STYLES (Google-inspired)
    ========================================= */
 
 #modalPerfil .modal-content {
@@ -1009,98 +1009,90 @@ footer p {
     padding: 0;
     border-radius: 16px;
     overflow: hidden;
-    max-height: 70vh !important;
-    display: flex !important;
-    flex-direction: column !important;
 }
 
 .profile-header {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    padding: 12px 16px;
+    padding: 32px 24px;
     text-align: center;
-    flex-shrink: 0 !important;
+    position: relative;
 }
 
 .profile-avatar-large {
-    width: 45px;
-    height: 45px;
+    width: 96px;
+    height: 96px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 4px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
+    font-size: 2.5rem;
     font-weight: 600;
     color: white;
-    margin: 0 auto 6px;
+    margin: 0 auto 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .profile-name {
-    font-size: 0.95rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: white;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
 }
 
 .profile-email {
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .profile-body {
-    padding: 10px 16px;
-    overflow-y: auto !important;
-    flex: 1 !important;
-    min-height: 0 !important;
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
 }
 
 .profile-section {
-    margin-bottom: 10px;
-}
-
-.profile-section:last-child {
-    margin-bottom: 0;
+    margin-bottom: 24px;
 }
 
 .profile-section-title {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--primary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
 }
 
 .profile-section-title::before {
     content: '';
-    width: 2px;
-    height: 9px;
+    width: 3px;
+    height: 14px;
     background: var(--primary);
     border-radius: 2px;
 }
 
 #modalPerfil .form-group {
-    margin-bottom: 8px;
+    margin-bottom: 16px;
 }
 
 #modalPerfil .form-group label {
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: var(--text-gray);
-    margin-bottom: 3px;
+    margin-bottom: 6px;
 }
 
 #modalPerfil .form-group input {
-    padding: 7px;
-    border-radius: 6px;
+    padding: 12px;
+    border-radius: 8px;
     border: 1.5px solid #374151;
     background: rgba(255, 255, 255, 0.03);
     transition: all 0.2s;
-    font-size: 0.85rem;
 }
 
 #modalPerfil .form-group input:focus {
@@ -1113,25 +1105,23 @@ footer p {
 .profile-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    gap: 12px;
 }
 
 .profile-actions {
-    padding: 8px 16px;
+    padding: 16px 24px;
     background: rgba(255, 255, 255, 0.02);
     border-top: 1px solid #374151;
-    display: flex !important;
+    display: flex;
     justify-content: flex-end;
-    gap: 8px;
-    flex-shrink: 0 !important;
+    gap: 12px;
 }
 
 #modalPerfil .btn {
-    padding: 8px 18px;
-    border-radius: 6px;
+    padding: 10px 24px;
+    border-radius: 8px;
     font-weight: 500;
     transition: all 0.2s;
-    font-size: 0.85rem;
 }
 
 #modalPerfil .btn-cancel {
@@ -1156,64 +1146,82 @@ footer p {
     transform: translateY(-1px);
 }
 
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    font-size: 1.1rem;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
 
-/* =========================================
-   PROFILE MODAL - Google Style
-   ========================================= */
+.avatar:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.5);
+}
 
+/* Profile Modal - Google Style (Compact Version) */
 #modalPerfil .modal-content {
     max-width: 480px;
     padding: 0;
     border-radius: 16px;
     overflow: hidden;
-    max-height: 70vh !important;
-    display: flex !important;
-    flex-direction: column !important;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .profile-header {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    padding: 12px 16px;
+    padding: 20px 24px 18px;
     text-align: center;
-    flex-shrink: 0 !important;
+    position: relative;
+    flex-shrink: 0;
 }
 
 .profile-avatar-large {
-    width: 45px;
-    height: 45px;
+    width: 64px;
+    height: 64px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.3rem;
+    font-size: 1.8rem;
     font-weight: 600;
     color: white;
-    margin: 0 auto 6px;
+    margin: 0 auto 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .profile-name {
-    font-size: 0.95rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: white;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
 }
 
 .profile-email {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.85);
 }
 
 .profile-body {
-    padding: 10px 16px;
-    overflow-y: auto !important;
-    flex: 1 !important;
-    min-height: 0 !important;
+    padding: 18px 24px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
 }
 
 .profile-section {
-    margin-bottom: 10px;
+    margin-bottom: 18px;
 }
 
 .profile-section:last-child {
@@ -1221,43 +1229,43 @@ footer p {
 }
 
 .profile-section-title {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--primary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
 }
 
 .profile-section-title::before {
     content: '';
-    width: 2px;
-    height: 9px;
+    width: 3px;
+    height: 12px;
     background: var(--primary);
     border-radius: 2px;
 }
 
 #modalPerfil .form-group {
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 #modalPerfil .form-group label {
-    font-size: 0.75rem;
+    font-size: 0.82rem;
     font-weight: 500;
     color: var(--text-gray);
-    margin-bottom: 3px;
+    margin-bottom: 5px;
 }
 
 #modalPerfil .form-group input {
-    padding: 7px;
-    border-radius: 6px;
+    padding: 10px;
+    border-radius: 8px;
     border: 1.5px solid #374151;
     background: rgba(255, 255, 255, 0.03);
     transition: all 0.2s;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 #modalPerfil .form-group input:focus {
@@ -1270,25 +1278,25 @@ footer p {
 .profile-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 6px;
+    gap: 10px;
 }
 
 .profile-actions {
-    padding: 8px 16px;
+    padding: 12px 24px;
     background: rgba(255, 255, 255, 0.02);
     border-top: 1px solid #374151;
-    display: flex !important;
+    display: flex;
     justify-content: flex-end;
-    gap: 8px;
-    flex-shrink: 0 !important;
+    gap: 10px;
+    flex-shrink: 0;
 }
 
 #modalPerfil .btn {
-    padding: 8px 18px;
-    border-radius: 6px;
+    padding: 9px 20px;
+    border-radius: 8px;
     font-weight: 500;
     transition: all 0.2s;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
 }
 
 #modalPerfil .btn-cancel {
@@ -1311,4 +1319,251 @@ footer p {
     background: var(--primary-dark);
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
     transform: translateY(-1px);
+}/* Profile Modal - Google Style (Compact) */
+#modalPerfil .modal-content {
+    max-width: 480px;
+    padding: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    padding: 16px 20px 14px;
+    text-align: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.profile-avatar-large {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: white;
+    margin: 0 auto 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.profile-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+}
+
+.profile-email {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.profile-body {
+    padding: 14px 20px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.profile-section {
+    margin-bottom: 14px;
+}
+
+.profile-section:last-child {
+    margin-bottom: 0;
+}
+
+.profile-section-title {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.profile-section-title::before {
+    content: '';
+    width: 3px;
+    height: 10px;
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+#modalPerfil .form-group {
+    margin-bottom: 10px;
+}
+
+#modalPerfil .form-group label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-gray);
+    margin-bottom: 4px;
+}
+
+#modalPerfil .form-group input {
+    padding: 9px;
+    border-radius: 6px;
+    border: 1.5px solid #374151;
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.2s;
+    font-size: 0.88rem;
+}
+
+#modalPerfil .form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(79, 70, 229, 0.05);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.profile-actions {
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid #374151;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+
+/* Profile Modal - Google Style (Ultra Compact) */
+#modalPerfil .modal-content {
+    max-width: 480px;
+    padding: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    max-height: 75vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    padding: 14px 18px 12px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.profile-avatar-large {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: white;
+    margin: 0 auto 6px;
+}
+
+.profile-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 2px;
+}
+
+.profile-email {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.profile-body {
+    padding: 12px 18px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.profile-section {
+    margin-bottom: 12px;
+}
+
+.profile-section:last-child {
+    margin-bottom: 0;
+}
+
+.profile-section-title {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.profile-section-title::before {
+    content: '';
+    width: 2px;
+    height: 9px;
+    background: var(--primary);
+    border-radius: 2px;
+}
+
+#modalPerfil .form-group {
+    margin-bottom: 9px;
+}
+
+#modalPerfil .form-group label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-gray);
+    margin-bottom: 3px;
+}
+
+#modalPerfil .form-group input {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1.5px solid #374151;
+    background: rgba(255, 255, 255, 0.03);
+    transition: all 0.2s;
+    font-size: 0.86rem;
+}
+
+#modalPerfil .form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(79, 70, 229, 0.05);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+}
+
+.profile-actions {
+    padding: 9px 18px;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid #374151;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
 }
