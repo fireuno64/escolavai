@@ -1891,10 +1891,58 @@ async function showChildForm(childIndex = null) {
         </div>
         <div class="form-group" style="margin-bottom: 10px;">
             <label>Escola *</label>
-            <select id="childEscola" required>
+            <select id="childEscola" onchange="handleEscolaSelectChange()" required>
                 <option value="">Selecione uma escola...</option>
+                <option value="__new__" style="color: #10b981; font-weight: bold;">➕ Cadastrar Nova Escola</option>
                 ${escolas.map(e => `<option value="${e.id}" ${childData && (childData.escolaId == e.id || childData.escola_id == e.id) ? 'selected' : ''}>${e.nome}</option>`).join('')}
             </select>
+        </div>
+        <div id="inlineEscolaForm" style="display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+            <h4 style="margin: 0 0 10px 0; color: #10b981; font-size: 0.9rem;">Nova Escola</h4>
+            <div class="form-group" style="margin-bottom: 8px;">
+                <label style="font-size: 0.85rem;">Nome da Escola *</label>
+                <input type="text" id="newEscolaNome" placeholder="Nome da escola">
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+                <label style="font-size: 0.85rem;">CEP</label>
+                <input type="text" id="newEscolaCep" maxlength="9" placeholder="00000-000">
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+                <label style="font-size: 0.85rem;">Rua</label>
+                <input type="text" id="newEscolaRua" placeholder="Nome da rua">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <div class="form-group">
+                    <label style="font-size: 0.85rem;">Número</label>
+                    <input type="text" id="newEscolaNumero">
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 0.85rem;">Complemento</label>
+                    <input type="text" id="newEscolaComplemento">
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+                <label style="font-size: 0.85rem;">Bairro</label>
+                <input type="text" id="newEscolaBairro">
+            </div>
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 8px; margin-bottom: 8px;">
+                <div class="form-group">
+                    <label style="font-size: 0.85rem;">Cidade</label>
+                    <input type="text" id="newEscolaCidade">
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 0.85rem;">UF</label>
+                    <input type="text" id="newEscolaEstado" maxlength="2">
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 8px;">
+                <label style="font-size: 0.85rem;">Telefone</label>
+                <input type="text" id="newEscolaTelefone" placeholder="(00) 00000-0000">
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-primary" style="flex: 1; font-size: 0.85rem;" onclick="saveInlineEscola()">✓ Salvar Escola</button>
+                <button type="button" class="btn" style="flex: 1; background: #6b7280; color: white; font-size: 0.85rem;" onclick="cancelInlineEscola()">✗ Cancelar</button>
+            </div>
         </div>
         <div class="form-group" style="margin-bottom: 10px;">
             <label>Tipo de Transporte *</label>
@@ -1926,6 +1974,17 @@ async function showChildForm(childIndex = null) {
 
     // Initialize visibility
     setTimeout(toggleHorarioFields, 0);
+
+    // Setup CEP integration for inline escola form
+    setupCepIntegration('newEscola');
+
+    // Disable "Adicionar Criança" button while form is open
+    const btnAdicionarCrianca = document.getElementById('btnAdicionarCrianca');
+    if (btnAdicionarCrianca) {
+        btnAdicionarCrianca.disabled = true;
+        btnAdicionarCrianca.style.opacity = '0.5';
+        btnAdicionarCrianca.style.cursor = 'not-allowed';
+    }
 
     formContainer.style.display = 'block';
 }
@@ -1970,10 +2029,101 @@ function saveChildForm() {
     renderChildrenList();
 }
 
+// Handle escola select change
+function handleEscolaSelectChange() {
+    const select = document.getElementById('childEscola');
+    const inlineForm = document.getElementById('inlineEscolaForm');
+
+    if (select.value === '__new__') {
+        inlineForm.style.display = 'block';
+        // Clear form
+        document.getElementById('newEscolaNome').value = '';
+        document.getElementById('newEscolaCep').value = '';
+        document.getElementById('newEscolaRua').value = '';
+        document.getElementById('newEscolaNumero').value = '';
+        document.getElementById('newEscolaComplemento').value = '';
+        document.getElementById('newEscolaBairro').value = '';
+        document.getElementById('newEscolaCidade').value = '';
+        document.getElementById('newEscolaEstado').value = '';
+        document.getElementById('newEscolaTelefone').value = '';
+    } else {
+        inlineForm.style.display = 'none';
+    }
+}
+
+// Save inline escola
+async function saveInlineEscola() {
+    const nome = document.getElementById('newEscolaNome').value.trim();
+
+    if (!nome) {
+        showNotification('Por favor, informe o nome da escola.', 'warning');
+        return;
+    }
+
+    const data = {
+        nome,
+        cep: document.getElementById('newEscolaCep').value,
+        rua: document.getElementById('newEscolaRua').value,
+        numero: document.getElementById('newEscolaNumero').value,
+        complemento: document.getElementById('newEscolaComplemento').value,
+        bairro: document.getElementById('newEscolaBairro').value,
+        cidade: document.getElementById('newEscolaCidade').value,
+        estado: document.getElementById('newEscolaEstado').value,
+        telefone: document.getElementById('newEscolaTelefone').value,
+        endereco: document.getElementById('newEscolaRua').value // Legacy
+    };
+
+    try {
+        const res = await fetch(`${API_URL}/escolas`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${currentUser.token}`
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            const newEscola = await res.json();
+            showNotification('Escola criada com sucesso!', 'success');
+
+            // Reload escolas list
+            await loadEscolas();
+
+            // Hide inline form
+            document.getElementById('inlineEscolaForm').style.display = 'none';
+
+            // Select the new escola
+            const select = document.getElementById('childEscola');
+            select.value = newEscola.id;
+        } else {
+            const errorData = await res.json();
+            showNotification(errorData.error || 'Erro ao criar escola', 'error');
+        }
+    } catch (error) {
+        console.error('Error creating escola:', error);
+        showNotification('Erro ao criar escola', 'error');
+    }
+}
+
+// Cancel inline escola
+function cancelInlineEscola() {
+    document.getElementById('inlineEscolaForm').style.display = 'none';
+    document.getElementById('childEscola').value = '';
+}
+
 // Cancel child form
 function cancelChildForm() {
     document.getElementById('childFormContainer').style.display = 'none';
     editingChildIndex = null;
+
+    // Re-enable "Adicionar Criança" button
+    const btnAdicionarCrianca = document.getElementById('btnAdicionarCrianca');
+    if (btnAdicionarCrianca) {
+        btnAdicionarCrianca.disabled = false;
+        btnAdicionarCrianca.style.opacity = '1';
+        btnAdicionarCrianca.style.cursor = 'pointer';
+    }
 }
 
 // Edit child

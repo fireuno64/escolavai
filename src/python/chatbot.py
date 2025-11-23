@@ -98,7 +98,13 @@ detailed_responses = {
    ✓ Informações das crianças vinculadas
    ✓ Valor total anual
    ✓ Termos e condições do serviço
-   ✓ Assinaturas""",
+   ✓ Assinaturas
+
+⚠️ MULTAS E PENALIDADES:
+   • Atraso no pagamento: Multa de 2% sobre o valor da parcela
+   • Cancelamento fora das condições permitidas: Multa de até 30% proporcional ao período restante
+   • Cancelamento NÃO permitido nos meses de Novembro, Dezembro e Janeiro
+   • Mudança de endereço com aviso prévio de 72h: SEM multa""",
     
     "responsavel": """👤 GERENCIAMENTO DE RESPONSÁVEIS:
 
@@ -135,7 +141,91 @@ detailed_responses = {
    • Os cards são atualizados automaticamente
    • Clique nos itens do menu lateral para acessar cada seção
    • Use o dashboard para ter uma visão geral do sistema
-   • Os números são calculados em tempo real"""
+   • Os números são calculados em tempo real""",
+    
+    "multa_atraso": """⏰ MULTA POR ATRASO DE PAGAMENTO:
+
+📌 REGRA: Multa de 2% sobre o valor da parcela
+
+📅 VENCIMENTO: Todo dia 5 de cada mês
+
+💡 EXEMPLO:
+   • Parcela: R$ 500,00
+   • Multa (2%): R$ 10,00
+   • Total com atraso: R$ 510,00
+
+⚠️ IMPORTANTE:
+   • A multa é aplicada automaticamente após o vencimento
+   • Pagamentos em dia evitam custos adicionais
+   • Consulte a seção 'Pagamentos' para verificar status""",
+    
+    "multa_cancelamento": """❌ MULTA POR CANCELAMENTO DE CONTRATO:
+
+📌 REGRA GERAL:
+   • Multa de até 30% do valor total
+   • Proporcional ao período restante do contrato
+   • Calculada sobre os meses que faltam até o término
+
+🚫 PERÍODOS BLOQUEADOS:
+   • Cancelamento NÃO permitido em: Novembro, Dezembro e Janeiro
+   • Nestes meses, o contrato deve ser mantido
+
+✅ CANCELAMENTO SEM MULTA:
+   • Mudança de endereço (com aviso de 72h)
+   • Indisciplina do aluno (após notificação)
+   • Acordo mútuo entre as partes
+
+💡 EXEMPLO:
+   • Contrato anual: R$ 6.000,00
+   • Faltam 6 meses: R$ 3.000,00
+   • Multa (30%): R$ 900,00
+
+📋 Para cancelar, entre em contato com o administrador.""",
+    
+    "termos_contrato": """📜 PRINCIPAIS TERMOS DO CONTRATO:
+
+🔹 CLÁUSULA 1ª - OBJETO:
+   • Transporte escolar do aluno entre residência e escola
+   • Tipos: Ida e Volta, Somente Ida, ou Somente Volta
+
+🔹 CLÁUSULA 2ª - VALOR:
+   • Valor anual dividido em 12 parcelas mensais
+   • Pagamento: 1º ao 5º dia útil de cada mês
+   • Desconto de 5% para pagamento à vista
+
+🔹 CLÁUSULA 4ª - VIGÊNCIA:
+   • Duração: 12 meses a partir da data de início
+   • Renovação mediante novo contrato
+
+🔹 CLÁUSULA 5ª - PONTUALIDADE:
+   • Aluno deve estar pronto no horário estabelecido
+   • Transportador não pode esperar
+
+🔹 CLÁUSULA 6ª - RESPONSABILIDADE:
+   • Transportador responsável pela integridade física e moral
+   • Durante o período em que o aluno estiver no veículo
+
+🔹 CLÁUSULA 7ª - FALTAS:
+   • Faltas ou licenças não isentam pagamento
+   • Paralizações escolares não afetam mensalidade
+
+🔹 CLÁUSULA 8ª - INDISCIPLINA:
+   • Notificação ao responsável e escola
+   • Possível rescisão sem multa em caso de reincidência
+
+🔹 CLÁUSULA 9ª - MUDANÇA DE ENDEREÇO:
+   • Aviso prévio de 72 horas por escrito
+   • Cancelamento sem multa neste caso
+
+🔹 CLÁUSULA 10ª - RESCISÃO:
+   • Multa de até 30% para quem der causa
+   • Proibido cancelar em Nov, Dez e Jan
+
+🔹 CLÁUSULA 12ª - FÉRIAS E FERIADOS:
+   • Sem transporte nos meses de férias
+   • Dois dias por ano para vistoria (com aviso)
+   • Feriados prolongados sem transporte
+   • Excursões: transporte apenas em horário normal"""
 }
 
 # ==========================================
@@ -193,11 +283,51 @@ class EscolaVaiChatbot:
                     "contrato", "acordo", "documento", "pdf", "gerar contrato",
                     "baixar contrato", "imprimir contrato", "como gerar",
                     "o que é contrato", "pra que serve contrato", "onde fica contrato",
+                    "termos do contrato", "cláusulas", "clausulas", "condições do contrato",
                     "contarto", "contrata", "ducumento" # Typos comuns
                 ],
                 "responses": [
                     "Para gerar um contrato, vá até a seção 'Responsáveis', encontre o responsável desejado e clique no botão 'PDF'. O contrato será gerado automaticamente.",
                     "Você pode gerar contratos em PDF na tela de Responsáveis. Basta clicar no botão 'PDF' ao lado do nome do responsável."
+                ]
+            },
+            "multa_atraso": {
+                "patterns": [
+                    "multa", "multa de atraso", "multa atraso", "atraso", "atrasado",
+                    "pagar atrasado", "pagamento atrasado", "juros", "mora",
+                    "quanto é a multa", "qual a multa", "valor da multa",
+                    "multa por atraso", "penalidade atraso", "taxa de atraso",
+                    "atrasei o pagamento", "paguei atrasado", "venceu",
+                    "multa de pagamento", "multa pagamento"
+                ],
+                "responses": [
+                    "A multa por atraso de pagamento é de 2% sobre o valor da parcela. Por exemplo, se a parcela é R$ 500, a multa será R$ 10. O vencimento é sempre no dia 5 de cada mês."
+                ]
+            },
+            "multa_cancelamento": {
+                "patterns": [
+                    "cancelar", "cancelamento", "rescindir", "rescisão", "rescisao",
+                    "multa de cancelamento", "multa cancelamento", "cancelar contrato",
+                    "quero cancelar", "como cancelar", "posso cancelar",
+                    "desistir", "desistência", "romper contrato",
+                    "multa por cancelar", "penalidade cancelamento",
+                    "quanto pago para cancelar", "valor para cancelar",
+                    "sair do contrato", "encerrar contrato"
+                ],
+                "responses": [
+                    "A multa por cancelamento é de até 30% do valor total, proporcional ao período restante. IMPORTANTE: Cancelamento NÃO é permitido em Novembro, Dezembro e Janeiro. Mudança de endereço com aviso de 72h não gera multa."
+                ]
+            },
+            "termos_contrato": {
+                "patterns": [
+                    "termos", "cláusulas", "clausulas", "condições", "condicoes",
+                    "regras do contrato", "o que diz o contrato", "detalhes do contrato",
+                    "termos do contrato", "condições do contrato",
+                    "cláusula", "clausula", "regra", "norma",
+                    "o que está no contrato", "conteúdo do contrato"
+                ],
+                "responses": [
+                    "O contrato possui 12 cláusulas principais cobrindo: objeto do serviço, valor e pagamento, vigência, pontualidade, responsabilidade, faltas, indisciplina, mudança de endereço, rescisão, reajuste, foro e férias. Posso detalhar alguma cláusula específica?"
                 ]
             },
             "cadastro": {
@@ -407,9 +537,55 @@ class EscolaVaiChatbot:
         # Treina o modelo
         self.pipeline.fit(training_data, training_labels)
     
-    def get_response(self, message):
-        """Retorna resposta para uma mensagem"""
+    def get_response(self, message, conversation_history=None):
+        """Retorna resposta para uma mensagem com suporte a histórico de conversa"""
         message_lower = message.lower().strip()
+        
+        # Analisa histórico para contexto
+        context_intent = None
+        if conversation_history and len(conversation_history) > 0:
+            # Pega a última intent do histórico
+            last_message = conversation_history[-1] if conversation_history else None
+            if last_message and 'intent' in last_message:
+                context_intent = last_message['intent']
+        
+        # Detecta perguntas de follow-up
+        follow_up_patterns = [
+            'me dê detalhes', 'me de detalhes', 'detalhes', 'mais informações',
+            'mais info', 'explica melhor', 'explique melhor', 'pode explicar',
+            'me explica', 'me explique', 'conta mais', 'fala mais',
+            'e sobre', 'e quanto', 'e o que', 'como assim', 'o que mais',
+            'quais são', 'quais sao', 'me fale mais', 'me fala mais'
+        ]
+        
+        is_follow_up = any(pattern in message_lower for pattern in follow_up_patterns)
+        
+        # Se é follow-up e temos contexto, usa a intent anterior com resposta detalhada
+        if is_follow_up and context_intent:
+            if context_intent in detailed_responses:
+                return {
+                    "intent": f"{context_intent}_details",
+                    "response": detailed_responses[context_intent],
+                    "confidence": "high"
+                }
+            elif context_intent == 'multa_atraso':
+                return {
+                    "intent": "multa_atraso_details",
+                    "response": detailed_responses['multa_atraso'],
+                    "confidence": "high"
+                }
+            elif context_intent == 'multa_cancelamento':
+                return {
+                    "intent": "multa_cancelamento_details",
+                    "response": detailed_responses['multa_cancelamento'],
+                    "confidence": "high"
+                }
+            elif context_intent == 'termos_contrato':
+                return {
+                    "intent": "termos_contrato_details",
+                    "response": detailed_responses['termos_contrato'],
+                    "confidence": "high"
+                }
         
         # Classifica a intent e obtém probabilidades
         predicted_intent = self.pipeline.predict([message_lower])[0]
@@ -440,6 +616,7 @@ class EscolaVaiChatbot:
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         user_input = sys.argv[1]
+        conversation_history = json.loads(sys.argv[2]) if len(sys.argv) > 2 else []
         
         # Inicializa e treina o chatbot (rápido o suficiente para rodar a cada request neste contexto)
         bot = EscolaVaiChatbot()
@@ -480,7 +657,7 @@ if __name__ == "__main__":
             }
         else:
             # Processa mensagem com ML
-            result = bot.get_response(user_input)
+            result = bot.get_response(user_input, conversation_history)
             
             # ===== DETECÇÃO INTELIGENTE DE CONTEXTO (Refinamento) =====
             

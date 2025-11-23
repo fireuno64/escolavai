@@ -28,12 +28,19 @@ CREATE TABLE `admin` (
   `email` varchar(255) NOT NULL,
   `cpf_cnpj` varchar(18) DEFAULT NULL,
   `endereco` varchar(255) DEFAULT NULL,
+  `cep` varchar(10) DEFAULT NULL,
+  `rua` varchar(255) DEFAULT NULL,
+  `numero` varchar(20) DEFAULT NULL,
+  `complemento` varchar(255) DEFAULT NULL,
+  `bairro` varchar(100) DEFAULT NULL,
+  `cidade` varchar(100) DEFAULT NULL,
+  `estado` varchar(2) DEFAULT NULL,
   `senha` varchar(255) NOT NULL,
   `role` varchar(20) DEFAULT 'admin',
   `active` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -97,7 +104,7 @@ CREATE TABLE `crianca` (
   KEY `fk_crianca_escola` (`escola_id`),
   CONSTRAINT `crianca_ibfk_1` FOREIGN KEY (`responsavel_id`) REFERENCES `responsavel` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_crianca_escola` FOREIGN KEY (`escola_id`) REFERENCES `escola` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -112,8 +119,12 @@ CREATE TABLE `escola` (
   `nome` varchar(255) NOT NULL,
   `endereco` varchar(255) DEFAULT NULL,
   `cep` varchar(10) DEFAULT NULL,
+  `rua` varchar(255) DEFAULT NULL,
   `numero` varchar(20) DEFAULT NULL,
   `complemento` varchar(100) DEFAULT NULL,
+  `bairro` varchar(100) DEFAULT NULL,
+  `cidade` varchar(100) DEFAULT NULL,
+  `estado` varchar(2) DEFAULT NULL,
   `contato` varchar(100) DEFAULT NULL,
   `telefone` varchar(20) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
@@ -121,7 +132,7 @@ CREATE TABLE `escola` (
   PRIMARY KEY (`id`),
   KEY `admin_id` (`admin_id`),
   CONSTRAINT `escola_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -149,7 +160,7 @@ CREATE TABLE `pagamento` (
   CONSTRAINT `fk_pagamento_crianca` FOREIGN KEY (`criancaId`) REFERENCES `crianca` (`id`) ON DELETE CASCADE,
   CONSTRAINT `pagamento_ibfk_1` FOREIGN KEY (`responsavelId`) REFERENCES `responsavel` (`id`) ON DELETE CASCADE,
   CONSTRAINT `pagamento_ibfk_2` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=102 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=126 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -167,8 +178,12 @@ CREATE TABLE `responsavel` (
   `email` varchar(255) DEFAULT NULL,
   `endereco` varchar(255) DEFAULT NULL,
   `cep` varchar(10) DEFAULT NULL,
+  `rua` varchar(255) DEFAULT NULL,
   `numero` varchar(20) DEFAULT NULL,
   `complemento` varchar(100) DEFAULT NULL,
+  `bairro` varchar(100) DEFAULT NULL,
+  `cidade` varchar(100) DEFAULT NULL,
+  `estado` varchar(2) DEFAULT NULL,
   `enderecoId` int DEFAULT NULL,
   `senha` varchar(255) DEFAULT '123456',
   `valor_contrato` decimal(10,2) DEFAULT NULL,
@@ -183,7 +198,7 @@ CREATE TABLE `responsavel` (
   KEY `fk_responsavel_admin` (`adminId`),
   CONSTRAINT `fk_responsavel_admin` FOREIGN KEY (`adminId`) REFERENCES `admin` (`id`),
   CONSTRAINT `responsavel_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `admin` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -195,4 +210,4 @@ CREATE TABLE `responsavel` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-22 19:44:48
+-- Dump completed on 2025-11-23 18:22:09

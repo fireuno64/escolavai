@@ -64,7 +64,7 @@ export class ContractController {
 
             // 1. Fetch Admin Data (CONTRATADO)
             const [adminData] = await connection.execute<RowDataPacket[]>(
-                'SELECT nome, cpf_cnpj, endereco FROM admin WHERE id = ?',
+                'SELECT nome, cpf_cnpj, cep, rua, numero, complemento, bairro, cidade, estado FROM admin WHERE id = ?',
                 [adminId]
             );
 
@@ -75,7 +75,20 @@ export class ContractController {
             const admin = adminData[0];
             const adminNome = admin.nome || 'ANDERSON DE ALMEIDA SHIOTOKO';
             const adminCpfCnpj = admin.cpf_cnpj || '256.831.028-63';
-            const adminEndereco = admin.endereco || 'Av. Laurita Ortega Mari, 1470 - Pq. Pinheiros';
+
+            // Build admin address from structured fields
+            let adminEndereco = '';
+            if (admin.rua) {
+                adminEndereco = admin.rua;
+                if (admin.numero) adminEndereco += `, ${admin.numero}`;
+                if (admin.complemento) adminEndereco += ` - ${admin.complemento}`;
+                if (admin.bairro) adminEndereco += ` - ${admin.bairro}`;
+                if (admin.cidade && admin.estado) adminEndereco += `, ${admin.cidade}/${admin.estado}`;
+                if (admin.cep) adminEndereco += ` - CEP: ${admin.cep}`;
+            } else {
+                // Fallback to old endereco field or default
+                adminEndereco = admin.endereco || 'Av. Laurita Ortega Mari, 1470 - Pq. Pinheiros';
+            }
 
             // 2. Fetch Responsavel Data
             const responsavel = await responsavelService.getResponsavelById(responsavelId, adminId);
@@ -157,7 +170,7 @@ export class ContractController {
             doc.font('Helvetica-Bold').text('CONTRATADO', { continued: true });
             doc.font('Helvetica').text(', e de outro lado ', { continued: true });
             doc.font('Helvetica-Bold').text(responsavel.nome.toUpperCase(), { continued: true });
-            doc.font('Helvetica').text(` RG. ${responsavel.rg || 'N/A'} C.P.F. ${responsavel.cpf} residente à ${responsavelEndereco} Cidade SÃO PAULO Estado S.P doravante denominado `, { continued: true });
+            doc.font('Helvetica').text(` C.P.F. ${responsavel.cpf} residente à ${responsavelEndereco} doravante denominado `, { continued: true });
             doc.font('Helvetica-Bold').text('CONTRATANTE', { continued: true });
             doc.font('Helvetica').text(', tem entre si justo e contratado na melhor forma de direito as cláusulas seguintes:');
             doc.moveDown(0.8);
