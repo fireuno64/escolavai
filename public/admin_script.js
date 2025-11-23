@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
 // State
 let responsaveis = [];
@@ -396,7 +396,13 @@ function openModal(modalId) {
             document.getElementById('perfilNome').value = user.nome || '';
             document.getElementById('perfilEmail').value = user.email || '';
             document.getElementById('perfilCpfCnpj').value = user.cpf_cnpj || '';
-            document.getElementById('perfilEndereco').value = user.endereco || '';
+            document.getElementById('perfilCep').value = user.cep || '';
+            document.getElementById('perfilRua').value = user.rua || '';
+            document.getElementById('perfilNumero').value = user.numero || '';
+            document.getElementById('perfilComplemento').value = user.complemento || '';
+            document.getElementById('perfilBairro').value = user.bairro || '';
+            document.getElementById('perfilCidade').value = user.cidade || '';
+            document.getElementById('perfilEstado').value = user.estado || '';
             document.getElementById('perfilSenha').value = '';
         }
     }
@@ -1142,10 +1148,14 @@ async function handleResponsavelSubmit(e) {
     const editId = form.dataset.editId;
 
     // Get address fields separately (no concatenation)
-    const endereco = document.getElementById('respEndereco').value;
+    const endereco = document.getElementById('respRua').value; // Legacy support
+    const cep = document.getElementById('respCep').value;
+    const rua = document.getElementById('respRua').value;
     const numero = document.getElementById('respNumero').value;
     const complemento = document.getElementById('respComplemento').value;
-    const cep = document.getElementById('respCep').value;
+    const bairro = document.getElementById('respBairro').value;
+    const cidade = document.getElementById('respCidade').value;
+    const estado = document.getElementById('respEstado').value;
 
     console.log('Form data:', { editId });
 
@@ -1164,10 +1174,14 @@ async function handleResponsavelSubmit(e) {
         cpf: document.getElementById('respCpf').value,
         email: document.getElementById('respEmail').value,
         telefone: document.getElementById('respTelefone').value,
-        endereco: endereco,
-        cep: cep,
-        numero: numero,
-        complemento: complemento,
+        endereco,
+        cep,
+        rua,
+        numero,
+        complemento,
+        bairro,
+        cidade,
+        estado,
         rg: document.getElementById('respRg').value,
     };
 
@@ -1433,10 +1447,14 @@ async function editResponsavel(id) {
     document.getElementById('respTelefone').value = responsavel.telefone || '';
 
     // Populate separate address fields
-    document.getElementById('respEndereco').value = responsavel.endereco || '';
+    // Populate separate address fields
+    document.getElementById('respCep').value = responsavel.cep || '';
+    document.getElementById('respRua').value = responsavel.rua || responsavel.endereco || '';
     document.getElementById('respNumero').value = responsavel.numero || '';
     document.getElementById('respComplemento').value = responsavel.complemento || '';
-    document.getElementById('respCep').value = responsavel.cep || '';
+    document.getElementById('respBairro').value = responsavel.bairro || '';
+    document.getElementById('respCidade').value = responsavel.cidade || '';
+    document.getElementById('respEstado').value = responsavel.estado || '';
 
     document.getElementById('respRg').value = responsavel.rg || '';
 
@@ -1547,17 +1565,26 @@ async function handleEscolaSubmit(e) {
     const isEdit = !!editId;
 
     // Get address fields separately (no concatenation)
-    const endereco = document.getElementById('escolaEndereco').value;
+    // Get address fields separately (no concatenation)
+    const cep = document.getElementById('escolaCep').value;
+    const rua = document.getElementById('escolaRua').value;
     const numero = document.getElementById('escolaNumero').value;
     const complemento = document.getElementById('escolaComplemento').value;
-    const cep = document.getElementById('escolaCep').value;
+    const bairro = document.getElementById('escolaBairro').value;
+    const cidade = document.getElementById('escolaCidade').value;
+    const estado = document.getElementById('escolaEstado').value;
+    const endereco = rua; // Legacy
 
     const data = {
         nome: document.getElementById('escolaNome').value,
-        endereco: endereco,
-        cep: cep,
-        numero: numero,
-        complemento: complemento,
+        endereco,
+        cep,
+        rua,
+        numero,
+        complemento,
+        bairro,
+        cidade,
+        estado,
         contato: document.getElementById('escolaContato').value,
         telefone: document.getElementById('escolaTelefone').value,
         email: document.getElementById('escolaEmail').value
@@ -1605,10 +1632,13 @@ function editEscola(id) {
     if (!escola) return;
 
     document.getElementById('escolaNome').value = escola.nome;
-    document.getElementById('escolaEndereco').value = escola.endereco || '';
+    document.getElementById('escolaCep').value = escola.cep || '';
+    document.getElementById('escolaRua').value = escola.rua || escola.endereco || '';
     document.getElementById('escolaNumero').value = escola.numero || '';
     document.getElementById('escolaComplemento').value = escola.complemento || '';
-    document.getElementById('escolaCep').value = escola.cep || '';
+    document.getElementById('escolaBairro').value = escola.bairro || '';
+    document.getElementById('escolaCidade').value = escola.cidade || '';
+    document.getElementById('escolaEstado').value = escola.estado || '';
     document.getElementById('escolaContato').value = escola.contato || '';
     document.getElementById('escolaTelefone').value = escola.telefone || '';
     document.getElementById('escolaEmail').value = escola.email || '';
@@ -2003,7 +2033,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Profile Form Listener
     const formPerfil = document.getElementById('formPerfil');
     if (formPerfil) {
-        formPerfil.addEventListener('submit', handlePerfilSubmit);
+        formPerfil.addEventListener('submit', handleProfileSubmit); // Changed to handleProfileSubmit
 
         // Pre-fill profile data when modal opens
         const storedUser = localStorage.getItem('user');
@@ -2011,73 +2041,19 @@ document.addEventListener('DOMContentLoaded', function () {
             const user = JSON.parse(storedUser);
             document.getElementById('perfilNome').value = user.nome;
             document.getElementById('perfilEmail').value = user.email;
+            document.getElementById('perfilCpfCnpj').value = user.cpf_cnpj || '';
+            document.getElementById('perfilCep').value = user.cep || '';
+            document.getElementById('perfilRua').value = user.rua || '';
+            document.getElementById('perfilNumero').value = user.numero || '';
+            document.getElementById('perfilComplemento').value = user.complemento || '';
+            document.getElementById('perfilBairro').value = user.bairro || '';
+            document.getElementById('perfilCidade').value = user.cidade || '';
+            document.getElementById('perfilEstado').value = user.estado || '';
         }
     }
 });
 
-async function handlePerfilSubmit(e) {
-    e.preventDefault();
-
-    const storedUser = localStorage.getItem('user');
-    if (!storedUser) return;
-    const user = JSON.parse(storedUser);
-
-    // Concatenate address
-    const enderecoBase = document.getElementById('perfilEndereco').value;
-    const numero = document.getElementById('perfilNumero').value;
-    const complemento = document.getElementById('perfilComplemento').value;
-    const cep = document.getElementById('perfilCep').value;
-
-    let enderecoFinal = enderecoBase;
-    if (numero) enderecoFinal += `, ${numero}`;
-    if (complemento) enderecoFinal += ` - ${complemento}`;
-    if (cep) enderecoFinal += ` - CEP: ${cep}`;
-
-    const data = {
-        nome: document.getElementById('perfilNome').value,
-        email: document.getElementById('perfilEmail').value,
-        cpf_cnpj: document.getElementById('perfilCpfCnpj').value,
-        endereco: enderecoFinal
-    };
-
-    const senha = document.getElementById('perfilSenha').value;
-    if (senha) {
-        data.senha = senha;
-    }
-
-    try {
-        const res = await fetch(`${API_URL}/profile`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${currentUser.token}`
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (res.ok) {
-            const updatedUser = await res.json();
-            // Update local storage
-            const currentStorage = JSON.parse(localStorage.getItem('user'));
-            const newStorage = { ...currentStorage, ...updatedUser };
-            localStorage.setItem('user', JSON.stringify(newStorage));
-
-            // Update UI
-            currentUser = newStorage;
-            document.querySelector('.user-info span').innerText = `Olá, ${currentUser.nome} (${currentUser.role === 'master' ? 'Master' : 'Admin'})`;
-
-            showNotification('Perfil atualizado com sucesso!', 'success');
-            closeModal('modalPerfil');
-            document.getElementById('perfilSenha').value = ''; // Clear password field after successful update
-        } else {
-            const error = await res.json();
-            showNotification(error.error || 'Erro ao atualizar perfil', 'error');
-        }
-    } catch (error) {
-        console.error(error);
-        showNotification('Erro ao atualizar perfil', 'error');
-    }
-}
+// Removed old handlePerfilSubmit, replaced by handleProfileSubmit below.
 
 function logout() {
     localStorage.removeItem('user');
@@ -2085,7 +2061,7 @@ function logout() {
 }
 
 // ==================== CHATBOT FUNCTIONS ====================
-const CHATBOT_API_URL = 'http://localhost:5000/api/chat';
+const CHATBOT_API_URL = '/api/chat';
 
 // Gera ID de sessão único para o usuário
 let chatSessionId = localStorage.getItem('chatSessionId');
@@ -2206,9 +2182,9 @@ function removeTypingIndicator() {
 // CEP Integration
 function setupCepIntegration() {
     const cepInputs = [
-        { id: 'respCep', addressId: 'respEndereco', numberId: 'respNumero' },
-        { id: 'escolaCep', addressId: 'escolaEndereco', numberId: 'escolaNumero' },
-        { id: 'perfilCep', addressId: 'perfilEndereco', numberId: 'perfilNumero' }
+        { id: 'respCep', prefix: 'resp' },
+        { id: 'escolaCep', prefix: 'escola' },
+        { id: 'perfilCep', prefix: 'perfil' }
     ];
 
     cepInputs.forEach(input => {
@@ -2226,29 +2202,35 @@ function setupCepIntegration() {
             // Fetch Address on Blur
             el.addEventListener('blur', async function () {
                 const cep = this.value.replace(/\D/g, '');
+                const prefix = input.prefix;
+
                 if (cep.length === 8) {
                     // showNotification('Buscando CEP...', 'info');
                     try {
                         const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
                         const data = await response.json();
 
-                        if (!data.erro) {
-                            const addressField = document.getElementById(input.addressId);
-                            const numberField = document.getElementById(input.numberId);
-
-                            if (addressField) {
-                                // Format: Rua, Bairro, Cidade - UF
-                                addressField.value = `${data.logradouro}, ${data.bairro}, ${data.localidade} - ${data.uf}`;
-
-                                // Focus on number field
-                                if (numberField) {
-                                    numberField.focus();
-                                }
-                                // showNotification('Endereço encontrado!', 'success');
-                            }
-                        } else {
-                            showNotification('CEP não encontrado.', 'warning');
+                        if (data.erro) {
+                            showNotification('CEP não encontrado.', 'error');
+                            return;
                         }
+
+                        // Populate fields based on prefix
+                        const ruaField = document.getElementById(`${prefix}Rua`) || document.getElementById(`${prefix}Endereco`);
+                        if (ruaField) ruaField.value = data.logradouro;
+
+                        const bairroField = document.getElementById(`${prefix}Bairro`);
+                        if (bairroField) bairroField.value = data.bairro;
+
+                        const cidadeField = document.getElementById(`${prefix}Cidade`);
+                        if (cidadeField) cidadeField.value = data.localidade;
+
+                        const estadoField = document.getElementById(`${prefix}Estado`);
+                        if (estadoField) estadoField.value = data.uf;
+
+                        // Focus on number
+                        document.getElementById(`${prefix}Numero`)?.focus();
+
                     } catch (error) {
                         console.error('Erro ao buscar CEP:', error);
                         showNotification('Erro ao buscar CEP.', 'error');
@@ -2360,24 +2342,30 @@ async function handleProfileSubmit(e) {
     const senha = document.getElementById('perfilSenha').value;
 
     // Address composition
-    const enderecoBase = document.getElementById('perfilEndereco').value;
+    const cep = document.getElementById('perfilCep').value;
+    const rua = document.getElementById('perfilRua').value;
     const numero = document.getElementById('perfilNumero').value;
     const complemento = document.getElementById('perfilComplemento').value;
+    const bairro = document.getElementById('perfilBairro').value;
+    const cidade = document.getElementById('perfilCidade').value;
+    const estado = document.getElementById('perfilEstado').value;
 
-    let endereco = enderecoBase;
-    if (numero) endereco += `, ${numero}`;
-    if (complemento) endereco += ` - ${complemento}`;
-
-    const data = {
-        id,
+    const payload = {
+        id: currentUser.id,
         nome,
         email,
         cpf_cnpj,
-        endereco
+        cep,
+        rua,
+        numero,
+        complemento,
+        bairro,
+        cidade,
+        estado
     };
 
     if (senha) {
-        data.password = senha;
+        payload.password = senha;
     }
 
     try {
@@ -2387,20 +2375,33 @@ async function handleProfileSubmit(e) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${currentUser.token}`
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify(payload)
         });
 
         if (res.ok) {
-            const updatedUser = await res.json();
+            const updatedUserResponse = await res.json();
 
             // Update local storage
-            const storedUser = JSON.parse(localStorage.getItem('user'));
-            const newUser = { ...storedUser, ...updatedUser };
-            // Keep the token
-            newUser.token = storedUser.token;
+            const updatedUser = {
+                ...currentUser,
+                nome: payload.nome,
+                email: payload.email,
+                cpf_cnpj: payload.cpf_cnpj,
+                cep: payload.cep,
+                rua: payload.rua,
+                numero: payload.numero,
+                complemento: payload.complemento,
+                bairro: payload.bairro,
+                cidade: payload.cidade,
+                estado: payload.estado
+            };
+            // Keep the token and role from the original currentUser
+            updatedUser.token = currentUser.token;
+            updatedUser.role = currentUser.role;
 
-            localStorage.setItem('user', JSON.stringify(newUser));
-            currentUser = newUser;
+
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+            currentUser = updatedUser;
 
             showNotification('Perfil atualizado com sucesso!', 'success');
             closeModal('modalPerfil');

@@ -105,13 +105,31 @@ export class AuthController {
             }, process.env.JWT_SECRET || 'secret', {
                 expiresIn: '24h'
             });
+            // Check for first access (incomplete profile)
+            let isFirstAccess = false;
+            if (userRole === 'admin' || userRole === 'master') {
+                // Consider first access if address is missing
+                if (!user.endereco || user.endereco.trim() === '') {
+                    isFirstAccess = true;
+                }
+            }
             return res.status(200).json({
                 message: 'Login realizado com sucesso!',
                 user: {
                     id: user.id,
                     nome: user.nome,
                     email: user.email,
+                    cpf_cnpj: user.cpf_cnpj,
+                    endereco: user.endereco,
+                    cep: user.cep,
+                    rua: user.rua,
+                    numero: user.numero,
+                    complemento: user.complemento,
+                    bairro: user.bairro,
+                    cidade: user.cidade,
+                    estado: user.estado,
                     role: userRole,
+                    isFirstAccess, // Flag for frontend
                     token // Return token to frontend
                 }
             });
@@ -182,7 +200,7 @@ export class AuthController {
      *               $ref: '#/components/schemas/Error'
      */
     async updateProfile(req, res) {
-        const { id, nome, email, password, cpf_cnpj, endereco } = req.body;
+        const { id, nome, email, password, cpf_cnpj, endereco, cep, rua, numero, complemento, bairro, cidade, estado } = req.body;
         if (!id || !nome || !email) {
             return res.status(400).json({ error: 'ID, nome e email são obrigatórios.' });
         }
@@ -199,6 +217,35 @@ export class AuthController {
                 query += ', endereco = ?';
                 params.push(endereco);
             }
+            // Add new address fields
+            if (cep !== undefined) {
+                query += ', cep = ?';
+                params.push(cep);
+            }
+            if (rua !== undefined) {
+                query += ', rua = ?';
+                params.push(rua);
+            }
+            if (numero !== undefined) {
+                query += ', numero = ?';
+                params.push(numero);
+            }
+            if (complemento !== undefined) {
+                query += ', complemento = ?';
+                params.push(complemento);
+            }
+            if (bairro !== undefined) {
+                query += ', bairro = ?';
+                params.push(bairro);
+            }
+            if (cidade !== undefined) {
+                query += ', cidade = ?';
+                params.push(cidade);
+            }
+            if (estado !== undefined) {
+                query += ', estado = ?';
+                params.push(estado);
+            }
             if (password) {
                 // Hash password if provided
                 const hashedPassword = await bcrypt.hash(password, 10);
@@ -208,7 +255,7 @@ export class AuthController {
             query += ' WHERE id = ?';
             params.push(id);
             await connection.query(query, params);
-            res.json({ id, nome, email, cpf_cnpj, endereco });
+            res.json({ id, nome, email, cpf_cnpj, endereco, cep, rua, numero, complemento, bairro, cidade, estado });
         }
         catch (error) {
             console.error('Erro ao atualizar perfil:', error);

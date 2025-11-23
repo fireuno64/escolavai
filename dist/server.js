@@ -1,6 +1,7 @@
 // src/server.ts
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import fs from 'fs';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
@@ -16,12 +17,13 @@ import escolaRoutes from './routes/escola.routes.js';
 const app = express();
 const PORT = 3000;
 // Middlewares
+app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Escola Vai API Docs'
+    customSiteTitle: 'Escola Van API Docs'
 }));
 // Servir arquivos estáticos da pasta public
 app.use(express.static('public'));
@@ -36,7 +38,7 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/escolas', escolaRoutes);
 // Rota de teste
 app.get('/', (req, res) => {
-    res.send('API Escola Vai funcionando!');
+    res.send('API Escola Van funcionando!');
 });
 // Middleware de erro global
 app.use((err, req, res, next) => {

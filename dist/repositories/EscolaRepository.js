@@ -1,13 +1,17 @@
 import connection from '../db.js';
 export class EscolaRepository {
     async create(data) {
-        const query = 'INSERT INTO escola (nome, endereco, cep, numero, complemento, contato, telefone, email, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        const query = 'INSERT INTO escola (nome, endereco, cep, rua, numero, complemento, bairro, cidade, estado, contato, telefone, email, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         const params = [
             data.nome,
             data.endereco || null,
             data.cep || null,
+            data.rua || null,
             data.numero || null,
             data.complemento || null,
+            data.bairro || null,
+            data.cidade || null,
+            data.estado || null,
             data.contato || null,
             data.telefone || null,
             data.email || null,
@@ -44,6 +48,10 @@ export class EscolaRepository {
             fields.push('cep = ?');
             values.push(data.cep);
         }
+        if (data.rua !== undefined) {
+            fields.push('rua = ?');
+            values.push(data.rua);
+        }
         if (data.numero !== undefined) {
             fields.push('numero = ?');
             values.push(data.numero);
@@ -51,6 +59,18 @@ export class EscolaRepository {
         if (data.complemento !== undefined) {
             fields.push('complemento = ?');
             values.push(data.complemento);
+        }
+        if (data.bairro !== undefined) {
+            fields.push('bairro = ?');
+            values.push(data.bairro);
+        }
+        if (data.cidade !== undefined) {
+            fields.push('cidade = ?');
+            values.push(data.cidade);
+        }
+        if (data.estado !== undefined) {
+            fields.push('estado = ?');
+            values.push(data.estado);
         }
         if (data.contato !== undefined) {
             fields.push('contato = ?');

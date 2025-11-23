@@ -3,11 +3,11 @@ const options = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Escola Vai - API de Gestão de Transporte Escolar',
+            title: 'Escola Van - API de Gestão de Transporte Escolar',
             version: '1.0.0',
             description: 'API RESTful para gerenciamento de transporte escolar, incluindo responsáveis, crianças, escolas, pagamentos e contratos.',
             contact: {
-                name: 'Escola Vai',
+                name: 'Escola Van',
                 email: 'contato@escolavai.com'
             }
         },

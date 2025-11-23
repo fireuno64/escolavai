@@ -52,9 +52,32 @@ async function setup() {
             { query: `ALTER TABLE responsavel ADD COLUMN admin_id INT NULL`, msg: 'admin_id' },
             { query: `ALTER TABLE crianca ADD COLUMN data_inicio_contrato DATE NULL`, msg: 'crianca.data_inicio_contrato' },
             { query: `ALTER TABLE crianca ADD COLUMN valor_contrato_anual DECIMAL(10, 2) DEFAULT 0.00`, msg: 'crianca.valor_contrato_anual' },
-            { query: `ALTER TABLE crianca ADD COLUMN valor_contrato_anual DECIMAL(10, 2) DEFAULT 0.00`, msg: 'crianca.valor_contrato_anual' },
             { query: `ALTER TABLE admin ADD COLUMN active BOOLEAN DEFAULT TRUE`, msg: 'admin.active' },
-            { query: `ALTER TABLE responsavel ADD COLUMN active BOOLEAN DEFAULT TRUE`, msg: 'responsavel.active' }
+            { query: `ALTER TABLE responsavel ADD COLUMN active BOOLEAN DEFAULT TRUE`, msg: 'responsavel.active' },
+            // Address fields for Admin
+            { query: `ALTER TABLE admin ADD COLUMN cep VARCHAR(10) AFTER endereco`, msg: 'admin.cep' },
+            { query: `ALTER TABLE admin ADD COLUMN rua VARCHAR(255) AFTER cep`, msg: 'admin.rua' },
+            { query: `ALTER TABLE admin ADD COLUMN numero VARCHAR(20) AFTER rua`, msg: 'admin.numero' },
+            { query: `ALTER TABLE admin ADD COLUMN complemento VARCHAR(255) AFTER numero`, msg: 'admin.complemento' },
+            { query: `ALTER TABLE admin ADD COLUMN bairro VARCHAR(100) AFTER complemento`, msg: 'admin.bairro' },
+            { query: `ALTER TABLE admin ADD COLUMN cidade VARCHAR(100) AFTER bairro`, msg: 'admin.cidade' },
+            { query: `ALTER TABLE admin ADD COLUMN estado VARCHAR(2) AFTER cidade`, msg: 'admin.estado' },
+            // Address fields for Responsavel
+            { query: `ALTER TABLE responsavel ADD COLUMN cep VARCHAR(10) AFTER endereco`, msg: 'responsavel.cep' },
+            { query: `ALTER TABLE responsavel ADD COLUMN rua VARCHAR(255) AFTER cep`, msg: 'responsavel.rua' },
+            { query: `ALTER TABLE responsavel ADD COLUMN numero VARCHAR(20) AFTER rua`, msg: 'responsavel.numero' },
+            { query: `ALTER TABLE responsavel ADD COLUMN complemento VARCHAR(255) AFTER numero`, msg: 'responsavel.complemento' },
+            { query: `ALTER TABLE responsavel ADD COLUMN bairro VARCHAR(100) AFTER complemento`, msg: 'responsavel.bairro' },
+            { query: `ALTER TABLE responsavel ADD COLUMN cidade VARCHAR(100) AFTER bairro`, msg: 'responsavel.cidade' },
+            { query: `ALTER TABLE responsavel ADD COLUMN estado VARCHAR(2) AFTER cidade`, msg: 'responsavel.estado' },
+            // Address fields for Escola
+            { query: `ALTER TABLE escola ADD COLUMN cep VARCHAR(10) AFTER endereco`, msg: 'escola.cep' },
+            { query: `ALTER TABLE escola ADD COLUMN rua VARCHAR(255) AFTER cep`, msg: 'escola.rua' },
+            { query: `ALTER TABLE escola ADD COLUMN numero VARCHAR(20) AFTER rua`, msg: 'escola.numero' },
+            { query: `ALTER TABLE escola ADD COLUMN complemento VARCHAR(255) AFTER numero`, msg: 'escola.complemento' },
+            { query: `ALTER TABLE escola ADD COLUMN bairro VARCHAR(100) AFTER complemento`, msg: 'escola.bairro' },
+            { query: `ALTER TABLE escola ADD COLUMN cidade VARCHAR(100) AFTER bairro`, msg: 'escola.cidade' },
+            { query: `ALTER TABLE escola ADD COLUMN estado VARCHAR(2) AFTER cidade`, msg: 'escola.estado' }
         ];
         for (const cmd of alterCommands) {
             try {

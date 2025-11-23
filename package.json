@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "nodemon",
     "start": "node --import tsx ./src/server.ts",
-    "build": "tsc",
-    "prod": "concurrently \"node dist/server.js\" \"cd chatbot && python app.py\"",
+    "build": "tsc && node scripts/copy-assets.js",
+    "prod": "node dist/server.js",
     "dev:all": "concurrently \"npm run dev\" \"cd chatbot && python app.py\"",
     "chatbot": "cd chatbot && python app.py"
   },

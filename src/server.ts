@@ -3,6 +3,7 @@
 
 import 'dotenv/config';
 import express from 'express';
+import cors from 'cors';
 import fs from 'fs';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './config/swagger.js';
@@ -21,6 +22,7 @@ const app = express();
 const PORT = 3000;
 
 // Middlewares
+app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 

@@ -1,5 +1,5 @@
 // Chatbot Functions
-const CHATBOT_API_URL = 'http://localhost:5000/api/chat';
+const CHATBOT_API_URL = '/api/chat';
 
 function toggleChatbot() {
     const chatWindow = document.getElementById('chatbotWindow');

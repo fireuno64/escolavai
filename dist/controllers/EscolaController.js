@@ -4,7 +4,8 @@ export class EscolaController {
     async create(req, res) {
         try {
             const adminId = req.user.id;
-            const data = { ...req.body, adminId };
+            const { nome, endereco, cep, rua, numero, complemento, bairro, cidade, estado, contato, telefone, email } = req.body;
+            const data = { nome, endereco, cep, rua, numero, complemento, bairro, cidade, estado, contato, telefone, email, adminId };
             const escola = await escolaService.createEscola(data);
             res.status(201).json(escola);
         }
@@ -38,7 +39,8 @@ export class EscolaController {
     async update(req, res) {
         try {
             const adminId = req.user.id;
-            const escola = await escolaService.updateEscola(Number(req.params.id), req.body, adminId);
+            const { nome, endereco, cep, rua, numero, complemento, bairro, cidade, estado, contato, telefone, email } = req.body;
+            const escola = await escolaService.updateEscola(Number(req.params.id), { nome, endereco, cep, rua, numero, complemento, bairro, cidade, estado, contato, telefone, email }, adminId);
             if (!escola) {
                 return res.status(404).json({ error: 'Escola não encontrada' });
             }

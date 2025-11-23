@@ -10,7 +10,7 @@ export class ResponsavelController {
             if (!adminId) {
                 return res.status(401).json({ error: 'Usuário não autenticado.' });
             }
-            const { nome, cpf, telefone, email, endereco, cep, numero, complemento, enderecoId, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
+            const { nome, cpf, telefone, email, endereco, cep, rua, numero, complemento, bairro, cidade, estado, enderecoId, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
             console.log('ResponsavelController.create - Request body:', req.body);
             if (!nome || !cpf) {
                 return res.status(400).json({ error: 'Nome e CPF são obrigatórios' });
@@ -32,8 +32,12 @@ export class ResponsavelController {
                 email,
                 endereco,
                 cep,
+                rua,
                 numero,
                 complemento,
+                bairro,
+                cidade,
+                estado,
                 enderecoId: 1,
                 senha: hashedPassword,
                 rg
@@ -81,7 +85,7 @@ export class ResponsavelController {
             const adminId = req.user?.id;
             if (!adminId)
                 return res.status(401).json({ error: 'Usuário não autenticado.' });
-            const { nome, cpf, telefone, email, endereco, cep, numero, complemento, enderecoId, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
+            const { nome, cpf, telefone, email, endereco, cep, rua, numero, complemento, bairro, cidade, estado, enderecoId, senha, valor_contrato, data_inicio_contrato, rg } = req.body;
             const dataToUpdate = {
                 nome,
                 cpf,
@@ -89,8 +93,12 @@ export class ResponsavelController {
                 email,
                 endereco,
                 cep,
+                rua,
                 numero,
                 complemento,
+                bairro,
+                cidade,
+                estado,
                 enderecoId,
                 valor_contrato,
                 data_inicio_contrato,
