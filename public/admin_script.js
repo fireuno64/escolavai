@@ -9,6 +9,7 @@ let usuarios = [];
 let escolas = [];
 let filteredEscolas = []; // Filtered list for display
 let expandedResponsaveis = new Set(); // Track which responsaveis are expanded in payment view
+let expandedContracts = new Set(); // Track which contracts are expanded in payment view
 let currentUser = null;
 
 // Custom Notification System
@@ -170,6 +171,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // Check for first access (incomplete profile)
+    if (currentUser.isFirstAccess) {
+        console.log('First access detected, opening profile modal');
+        // Open profile modal after a short delay to ensure DOM is ready and transitions work
+        setTimeout(() => {
+            openModal('modalPerfil');
+            showNotification('Por favor, complete seu cadastro (endereço e nova senha) para continuar.', 'info');
+        }, 500);
+    }
+
     // Update user info in header
     const userInfoElement = document.querySelector('.user-info span');
     if (userInfoElement) {
@@ -228,6 +239,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize CEP Integration
     setupCepIntegration();
+
+    // Ensure contract expansion state is reset
+    expandedContracts.clear();
 });
 
 // Revenue Forecast Chart
@@ -305,7 +319,7 @@ function renderRevenueChart() {
                     displayColors: false,
                     callbacks: {
                         label: function (context) {
-                            return 'R$ ' + context.parsed.y.toFixed(2).replace('.', ',');
+                            return formatCurrency(context.parsed.y);
                         }
                     }
                 }
@@ -743,6 +757,11 @@ function clearPagamentoFilters() {
     renderPagamentosTable();
 }
 
+// Helper for currency formatting
+function formatCurrency(value) {
+    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+}
+
 function renderPagamentosTable() {
     const tbody = document.querySelector('#tablePagamentos tbody');
     const dataToRender = filteredPagamentos.length > 0 || hasActiveFilters() ? filteredPagamentos : pagamentos;
@@ -768,8 +787,28 @@ function renderPagamentosTable() {
 
     Object.keys(grouped).forEach(responsavelId => {
         const resp = responsaveis.find(r => r.id === parseInt(responsavelId));
-        const payments = grouped[responsavelId];
+        let payments = grouped[responsavelId];
         const respName = resp ? resp.nome : 'Desconhecido';
+
+        // Sort by date
+        payments.sort((a, b) => new Date(a.dataPagamento) - new Date(b.dataPagamento));
+
+        // Sub-group by contract/child
+        const byChild = {};
+        payments.forEach(p => {
+            const key = p.crianca_nome || p.referencia || 'Geral';
+            if (!byChild[key]) byChild[key] = [];
+            byChild[key].push(p);
+        });
+
+        // Assign installment info per child
+        Object.values(byChild).forEach(childPayments => {
+            const total = childPayments.length;
+            childPayments.forEach((p, index) => {
+                p.installmentInfo = `${index + 1}/${total}`;
+            });
+        });
+
         const totalPendente = payments
             .filter(p => p.status === 'Pendente')
             .reduce((acc, p) => acc + parseFloat(p.valor), 0);
@@ -778,7 +817,6 @@ function renderPagamentosTable() {
             .filter(p => p.status === 'Pago')
             .reduce((acc, p) => acc + parseFloat(p.valor), 0);
 
-        // Calculate total value of overdue payments (not count)
         const totalVencidos = payments.filter(p => {
             const pDate = new Date(p.dataPagamento);
             pDate.setHours(0, 0, 0, 0);
@@ -787,63 +825,95 @@ function renderPagamentosTable() {
 
         const isExpanded = expandedResponsaveis.has(parseInt(responsavelId));
 
-        // Header row for responsável (always visible)
+        // Header row for responsável (Level 1)
         html += `
         <tr class="responsavel-header" onclick="toggleResponsavelPayments(${responsavelId})" style="cursor: pointer; background: rgba(255,255,255,0.05); font-weight: 500; border-bottom: 2px solid #374151;">
             <td style="padding: 12px;">
                 <span id="toggle-icon-${responsavelId}" style="display: inline-block; width: 20px; transition: transform 0.3s;">${isExpanded ? '▼' : '▶'}</span>
                 <strong>${respName}</strong>
-                <span style="color: var(--text-gray); font-size: 0.85rem; margin-left: 8px;">(${payments.length} pagamento${payments.length > 1 ? 's' : ''})</span>
+                <span style="color: var(--text-gray); font-size: 0.85rem; margin-left: 8px;">(${Object.keys(byChild).length} contrato${Object.keys(byChild).length > 1 ? 's' : ''})</span>
             </td>
-            <td style="color: ${totalPendente > 0 ? '#FBBF24' : 'var(--text-gray)'};">R$ ${totalPendente.toFixed(2)}</td>
-            <td style="color: ${totalPago > 0 ? '#34D399' : 'var(--text-gray)'};">R$ ${totalPago.toFixed(2)}</td>
-            <td style="color: ${totalVencidos > 0 ? '#F87171' : 'var(--text-gray)'};">R$ ${totalVencidos.toFixed(2)}</td>
+            <td style="color: ${totalPendente > 0 ? '#FBBF24' : 'var(--text-gray)'};">${formatCurrency(totalPendente)}</td>
+            <td style="color: ${totalPago > 0 ? '#34D399' : 'var(--text-gray)'};">${formatCurrency(totalPago)}</td>
+            <td style="color: ${totalVencidos > 0 ? '#F87171' : 'var(--text-gray)'};">${formatCurrency(totalVencidos)}</td>
             <td>
                 <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.8rem;" onclick="event.stopPropagation(); openNewPagamentoModal(); document.getElementById('pagRespId').value = ${responsavelId};">+ Novo</button>
             </td>
         </tr>`;
 
-        // Payment rows (initially hidden)
-        payments.forEach(p => {
-            const pagamentoDate = new Date(p.dataPagamento);
-            let displayStatus = p.status;
-            let statusClass = '';
+        // Contract/Child rows (Level 2) - sub-grouped
+        Object.keys(byChild).forEach(childName => {
+            const childPayments = byChild[childName];
+            const contractId = `${responsavelId}-${childName.replace(/\s+/g, '-')}`;
+            const isContractExpanded = expandedContracts && expandedContracts.has(contractId); // Collapsed by default
 
-            if (p.status === 'Pendente' && pagamentoDate < today) {
-                displayStatus = 'Vencido';
-                statusClass = 'status-overdue';
-            } else {
-                statusClass = p.status === 'Pago' ? 'status-paid' : (p.status === 'Pendente' ? 'status-pending' : 'status-late');
-            }
+            const childTotalPendente = childPayments
+                .filter(p => p.status === 'Pendente')
+                .reduce((acc, p) => acc + parseFloat(p.valor), 0);
 
-            const toggleButtonText = p.status === 'Pago' ? '↩️ Pendente' : '✓ Pagar';
-            const toggleButtonColor = p.status === 'Pago' ? '#f59e0b' : '#10b981';
+            const childTotalPago = childPayments
+                .filter(p => p.status === 'Pago')
+                .reduce((acc, p) => acc + parseFloat(p.valor), 0);
 
-            // Get contract/child reference if available
-            const contratoRef = p.contratoId ? `Contrato #${p.contratoId}` : (p.crianca_nome || p.referencia || 'Sem referência');
+            const childTotalVencidos = childPayments.filter(p => {
+                const pDate = new Date(p.dataPagamento);
+                pDate.setHours(0, 0, 0, 0);
+                return p.status === 'Pendente' && pDate < today;
+            }).reduce((acc, p) => acc + parseFloat(p.valor), 0);
 
+            // Contract header row (collapsible)
             html += `
-            <tr class="payment-row payment-row-${responsavelId}" style="display: ${isExpanded ? 'table-row' : 'none'}; background: rgba(255,255,255,0.02);">
-                <td style="padding-left: 40px; font-size: 0.9rem;">
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <div>
-                            <span style="color: var(--text-gray);">Vencimento:</span> ${pagamentoDate.toLocaleDateString('pt-BR')}
-                        </div>
-                        <div style="font-size: 0.85rem; color: #9CA3AF;">
-                            <span style="color: var(--text-gray);">Ref:</span> ${contratoRef}
-                        </div>
-                    </div>
+            <tr class="contract-header payment-row-${responsavelId}" onclick="toggleContractPayments('${contractId}')" style="display: ${isExpanded ? 'table-row' : 'none'}; cursor: pointer; background: rgba(255,255,255,0.03); border-left: 3px solid var(--primary);">
+                <td style="padding-left: 30px; font-size: 0.9rem;">
+                    <span id="toggle-icon-${contractId}" style="display: inline-block; width: 16px; transition: transform 0.3s;">${isContractExpanded ? '▼' : '▶'}</span>
+                    <strong style="color: var(--primary);">${childName}</strong>
+                    <span style="color: var(--text-gray); font-size: 0.8rem; margin-left: 8px;">(${childPayments.length} parcela${childPayments.length > 1 ? 's' : ''})</span>
                 </td>
-                <td colspan="2">
-                    <span style="color: var(--text-gray);">Valor:</span> R$ ${parseFloat(p.valor).toFixed(2)}
-                    <span class="status-badge ${statusClass}" style="margin-left: 10px;">${displayStatus}</span>
-                </td>
-                <td colspan="2">
-                    <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.8rem; margin-right: 5px;" onclick="event.stopPropagation(); editPagamento(${p.id})">✏️ Editar</button>
-                    <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background: ${toggleButtonColor}; color: white; margin-right: 5px;" onclick="event.stopPropagation(); togglePagamentoStatus(${p.id}, '${p.status}')">${toggleButtonText}</button>
-                    <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background: var(--danger); color: white;" onclick="event.stopPropagation(); deletePagamento(${p.id})">🗑️</button>
-                </td>
+                <td style="color: ${childTotalPendente > 0 ? '#FBBF24' : 'var(--text-gray)'}; font-size: 0.85rem;">${formatCurrency(childTotalPendente)}</td>
+                <td style="color: ${childTotalPago > 0 ? '#34D399' : 'var(--text-gray)'}; font-size: 0.85rem;">${formatCurrency(childTotalPago)}</td>
+                <td style="color: ${childTotalVencidos > 0 ? '#F87171' : 'var(--text-gray)'}; font-size: 0.85rem;">${formatCurrency(childTotalVencidos)}</td>
+                <td></td>
             </tr>`;
+
+            // Individual payment rows (Level 3)
+            childPayments.forEach(p => {
+                const pagamentoDate = new Date(p.dataPagamento);
+                let displayStatus = p.status;
+                let statusClass = '';
+
+                if (p.status === 'Pendente' && pagamentoDate < today) {
+                    displayStatus = 'Vencido';
+                    statusClass = 'status-overdue';
+                } else {
+                    statusClass = p.status === 'Pago' ? 'status-paid' : (p.status === 'Pendente' ? 'status-pending' : 'status-late');
+                }
+
+                const toggleButtonText = p.status === 'Pago' ? '↩️ Pendente' : '✓ Pagar';
+                const toggleButtonColor = p.status === 'Pago' ? '#f59e0b' : '#10b981';
+
+                html += `
+                <tr class="payment-detail payment-row-${responsavelId} contract-payment-${contractId}" style="display: none; background: rgba(255,255,255,0.01);">
+                    <td style="padding-left: 60px; font-size: 0.85rem;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <div>
+                                <span style="color: var(--text-gray);">Vencimento:</span> ${pagamentoDate.toLocaleDateString('pt-BR')}
+                            </div>
+                            <div style="font-size: 0.8rem; color: #9CA3AF;">
+                                <span style="color: var(--text-gray);">Parcela:</span> ${p.installmentInfo || 'N/A'}
+                            </div>
+                        </div>
+                    </td>
+                    <td colspan="2">
+                        <span style="color: var(--text-gray); font-size: 0.85rem;">Valor:</span> ${formatCurrency(parseFloat(p.valor))}
+                        <span class="status-badge ${statusClass}" style="margin-left: 10px; font-size: 0.75rem;">${displayStatus}</span>
+                    </td>
+                    <td colspan="2">
+                        <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.75rem; margin-right: 5px;" onclick="event.stopPropagation(); editPagamento(${p.id})">✏️ Editar</button>
+                        <button class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: ${toggleButtonColor}; color: white; margin-right: 5px;" onclick="event.stopPropagation(); togglePagamentoStatus(${p.id}, '${p.status}')">${toggleButtonText}</button>
+                        <button class="btn" style="padding: 4px 8px; font-size: 0.75rem; background: var(--danger); color: white;" onclick="event.stopPropagation(); deletePagamento(${p.id})">🗑️</button>
+                    </td>
+                </tr>`;
+            });
         });
     });
 
@@ -855,7 +925,8 @@ function renderPagamentosTable() {
 // Toggle function for expanding/collapsing payment rows
 function toggleResponsavelPayments(responsavelId) {
     const id = parseInt(responsavelId);
-    const rows = document.querySelectorAll(`.payment-row-${responsavelId}`);
+    // Only select contract headers, not individual payment details
+    const rows = document.querySelectorAll(`.contract-header.payment-row-${responsavelId}`);
     const icon = document.getElementById(`toggle-icon-${responsavelId}`);
 
     if (expandedResponsaveis.has(id)) {
@@ -863,9 +934,39 @@ function toggleResponsavelPayments(responsavelId) {
         expandedResponsaveis.delete(id);
         rows.forEach(row => row.style.display = 'none');
         if (icon) icon.textContent = '▶';
+
+        // Also collapse all contracts within this responsavel
+        rows.forEach(row => {
+            const contractId = row.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+            if (contractId && expandedContracts.has(contractId)) {
+                expandedContracts.delete(contractId);
+                const contractRows = document.querySelectorAll(`.contract-payment-${contractId}`);
+                contractRows.forEach(r => r.style.display = 'none');
+                const contractIcon = document.getElementById(`toggle-icon-${contractId}`);
+                if (contractIcon) contractIcon.textContent = '▶';
+            }
+        });
+    } else {
+        // Expand - only show contract headers, not payments
+        expandedResponsaveis.add(id);
+        rows.forEach(row => row.style.display = 'table-row');
+        if (icon) icon.textContent = '▼';
+    }
+}
+
+// Toggle function for expanding/collapsing contract payment rows
+function toggleContractPayments(contractId) {
+    const rows = document.querySelectorAll(`.contract-payment-${contractId}`);
+    const icon = document.getElementById(`toggle-icon-${contractId}`);
+
+    if (expandedContracts.has(contractId)) {
+        // Collapse
+        expandedContracts.delete(contractId);
+        rows.forEach(row => row.style.display = 'none');
+        if (icon) icon.textContent = '▶';
     } else {
         // Expand
-        expandedResponsaveis.add(id);
+        expandedContracts.add(contractId);
         rows.forEach(row => row.style.display = 'table-row');
         if (icon) icon.textContent = '▼';
     }
@@ -992,7 +1093,7 @@ function updateStats() {
     const totalPendentes = pagamentos
         .filter(p => p.status === 'Pendente')
         .reduce((acc, curr) => acc + parseFloat(curr.valor), 0);
-    document.getElementById('totalPendentes').innerText = `R$ ${totalPendentes.toFixed(2)}`;
+    document.getElementById('totalPendentes').innerText = formatCurrency(totalPendentes);
 
     // Receita Mensal (Paid in current month)
     const receita = pagamentos
@@ -1003,7 +1104,7 @@ function updateStats() {
                 pDate.getFullYear() === currentYear;
         })
         .reduce((acc, curr) => acc + parseFloat(curr.valor), 0);
-    document.getElementById('receitaMensal').innerText = `R$ ${receita.toFixed(2)}`;
+    document.getElementById('receitaMensal').innerText = formatCurrency(receita);
 
     // Valor Total de Vencidos (Pending and date < today)
     today.setHours(0, 0, 0, 0);
@@ -1016,7 +1117,7 @@ function updateStats() {
         .reduce((acc, curr) => acc + parseFloat(curr.valor), 0);
 
     const elTotalVencidos = document.getElementById('totalVencidos');
-    if (elTotalVencidos) elTotalVencidos.innerText = `R$ ${totalVencidos.toFixed(2)}`;
+    if (elTotalVencidos) elTotalVencidos.innerText = formatCurrency(totalVencidos);
 
     // Pagamentos Vencidos Count (Pending and date < today)
     const vencidosCount = pagamentos.filter(p => {
@@ -2006,7 +2107,7 @@ function toggleChatbot() {
         // Add initial greeting if this is the first time opening (no messages yet)
         if (messagesContainer.children.length === 0) {
             setTimeout(() => {
-                addChatMessage('Olá! Sou o assistente virtual da Escola Vai. Como posso ajudar?', 'bot');
+                addChatMessage('Olá! Sou o Jaspion, assistente virtual da Escola Van. Como posso ajudar?', 'bot');
             }, 300);
         }
     }

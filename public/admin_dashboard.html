@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escola Vai - Painel Administrativo</title>
+    <title>Escola Van - Painel Administrativo</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css?v=20251123">
     <link rel="stylesheet" href="chatbot.css">
@@ -177,7 +177,7 @@
 <body class="dashboard-body">
     <nav class="sidebar">
         <div class="logo">
-            <img src="images/logo.png" alt="Escola Vai Logo">
+            <img src="images/logo.png" alt="Escola Van Logo">
         </div>
         <div class="nav-item" onclick="showSection('dashboard')">📊 Dashboard</div>
         <div class="nav-item" onclick="showSection('responsaveis')">👥 Responsáveis</div>
@@ -749,13 +749,16 @@
     </script>
 
     <!-- Chatbot Widget -->
-    <button class="chatbot-button" onclick="toggleChatbot()" title="Assistente Virtual">
-        🤖
+    <button class="chatbot-button" onclick="toggleChatbot()" title="Fale com o Jaspion">
+        <img src="images/jaspion_icon.png" alt="Jaspion">
     </button>
 
     <div class="chatbot-window" id="chatbotWindow">
         <div class="chatbot-header">
-            <h3>🤖 Assistente Escola Vai</h3>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="images/jaspion_icon.png" alt="Jaspion" style="width: 30px; height: 30px; border-radius: 50%;">
+                <h3>Jaspion</h3>
+            </div>
             <button class="chatbot-close" onclick="toggleChatbot()">×</button>
         </div>
         <div class="chatbot-messages" id="chatbotMessages">

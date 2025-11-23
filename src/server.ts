@@ -27,7 +27,7 @@ app.use(express.static('public'));
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Escola Vai API Docs'
+  customSiteTitle: 'Escola Van API Docs'
 }));
 
 // Servir arquivos estáticos da pasta public
@@ -44,7 +44,7 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/escolas', escolaRoutes);
 // Rota de teste
 app.get('/', (req, res) => {
-  res.send('API Escola Vai funcionando!');
+  res.send('API Escola Van funcionando!');
 });
 
 // Middleware de erro global

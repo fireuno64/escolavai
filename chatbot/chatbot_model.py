@@ -231,6 +231,24 @@ class EscolaVaiChatbot:
                     "No Dashboard você encontra as principais métricas do sistema: número de responsáveis, crianças, pagamentos pendentes e escolas ativas. Use o menu lateral para acessar cada seção detalhadamente.",
                     "O painel Dashboard exibe cards com estatísticas importantes: Total Responsáveis (quantos responsáveis cadastrados), Crianças Cadastradas (total de alunos), Pagamentos Pendentes (valores a receber) e Escolas Ativas (escolas cadastradas)."
                 ]
+            },
+            "perfil": {
+                "patterns": [
+                    "perfil", "meu perfil", "minha conta", "meus dados",
+                    "alterar senha", "mudar senha", "trocar senha", "nova senha",
+                    "editar perfil", "editar dados", "atualizar cadastro",
+                    "mudar email", "alterar email", "trocar email",
+                    "mudar endereço", "alterar endereço", "trocar endereço",
+                    "como altero minha senha", "como editar meu perfil",
+                    "onde mudo a senha", "esqueci a senha",
+                    "configurações de conta", "meus dados pessoais",
+                    "foto de perfil", "mudar foto", "alterar foto"
+                ],
+                "responses": [
+                    "Para editar seus dados (senha, endereço, email), clique no seu avatar/ícone no canto superior direito da tela. Um formulário abrirá para você atualizar suas informações.",
+                    "Você pode alterar sua senha e outros dados clicando na sua foto de perfil no topo da página. Não se esqueça de salvar as alterações!",
+                    "O gerenciamento do seu perfil é feito clicando no ícone do usuário no canto superior direito. Lá você pode atualizar endereço, email e senha."
+                ]
             }
         }
     

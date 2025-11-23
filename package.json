@@ -1,7 +1,7 @@
 {
   "name": "transporte_escolar_2025",
   "version": "1.0.0",
-  "description": "Sistema de Gestão de Transporte Escolar",
+  "description": "Sistema de Gestão de Transporte Escolar (Escola Van)",
   "main": "src/server.ts",
   "type": "module",
   "scripts": {

@@ -1,4 +1,4 @@
-# 🚌 Sistema de Gestão de Transporte Escolar (Escola Vai)
+# 🚌 Sistema de Gestão de Transporte Escolar (Escola Van)
 
 Sistema completo para gestão de transporte escolar, incluindo controle de responsáveis, crianças, escolas, pagamentos e contratos. Conta com um chatbot inteligente para suporte automatizado.
 

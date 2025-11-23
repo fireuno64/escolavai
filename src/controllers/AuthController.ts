@@ -125,6 +125,15 @@ export class AuthController {
                 expiresIn: '24h'
             });
 
+            // Check for first access (incomplete profile)
+            let isFirstAccess = false;
+            if (userRole === 'admin' || userRole === 'master') {
+                // Consider first access if address is missing
+                if (!user.endereco || user.endereco.trim() === '') {
+                    isFirstAccess = true;
+                }
+            }
+
             return res.status(200).json({
                 message: 'Login realizado com sucesso!',
                 user: {
@@ -132,6 +141,7 @@ export class AuthController {
                     nome: user.nome,
                     email: user.email,
                     role: userRole,
+                    isFirstAccess, // Flag for frontend
                     token // Return token to frontend
                 }
             });
