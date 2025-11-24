@@ -82,3 +82,43 @@ O chatbot roda em um servidor Python separado (porta 5000) e se comunica com o f
 ## 📝 Licença
 
 Este projeto está sob a licença ISC.
+
+---
+
+## 🚀 Deployment em Produção
+
+Para fazer o deploy desta aplicação em um servidor de produção (Oracle Cloud, AWS, Azure, etc.), consulte o guia completo:
+
+📖 **[DEPLOYMENT.md](DEPLOYMENT.md)** - Guia completo de deployment para Oracle Cloud
+
+O guia inclui:
+- Configuração de servidor Ubuntu 22.04
+- Scripts automatizados de instalação
+- Configuração de Nginx, PM2, MySQL
+- Instruções de transferência de arquivos
+- Troubleshooting e manutenção
+- Configuração de domínio e SSL
+
+### Quick Start (Oracle Cloud)
+
+```bash
+# 1. Transferir arquivos para a VM
+# 2. Na VM, executar:
+cd /home/ubuntu/escolavai
+chmod +x deploy-scripts/*.sh
+
+# Instalar dependências
+cd deploy-scripts && ./install-dependencies.sh
+
+# Configurar MySQL
+./setup-mysql.sh
+
+# Deploy da aplicação
+cd /home/ubuntu/escolavai && ./deploy-scripts/deploy-app.sh
+
+# Configurar Nginx
+cd deploy-scripts && ./setup-nginx.sh
+```
+
+Acesse: `http://SEU_IP_PUBLICO`
+

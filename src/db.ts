@@ -1,14 +1,14 @@
-// src/db.ts
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
 
-import * as mysql from 'mysql2/promise';
-import 'dotenv/config'; // Garante que o .env seja lido
+dotenv.config();
 
-// A senha e os dados são lidos do .env via process.env
 const connection = mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: process.env.MYSQL_PASSWORD, // Lendo a variável que definimos
-    database: 'escolavai_db', // O banco que você criou no MySQL Workbench/Terminal
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || process.env.MYSQL_PASSWORD,
+    database: process.env.DB_NAME || 'escolavai_db',
+    port: parseInt(process.env.DB_PORT || '3306'),
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
@@ -17,12 +17,13 @@ const connection = mysql.createPool({
 async function testConnection() {
     try {
         await connection.query('SELECT 1');
-        console.log('✅ Conexão MySQL2 estabelecida com sucesso!');
+        console.log('✅ Conexão com MySQL estabelecida com sucesso!');
     } catch (error) {
         console.error('❌ Falha ao conectar ao MySQL2:', error);
         console.error('Verifique se o MySQL está rodando e se a senha no .env está correta.');
     }
 }
+
 testConnection();
 
 export default connection;
