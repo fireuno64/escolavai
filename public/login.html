@@ -273,6 +273,8 @@
                     // Redirect based on role from backend
                     setTimeout(() => {
                         const userRole = data.user.role;
+                        console.log('User role from backend:', userRole);
+                        console.log('Full user data:', data.user);
                         if (userRole === 'master') {
                             window.location.href = 'master_dashboard.html';
                         } else if (userRole === 'admin') {
@@ -280,7 +282,7 @@
                         } else if (userRole === 'cliente') {
                             window.location.href = 'client_dashboard.html';
                         } else {
-                            throw new Error('Tipo de usuário desconhecido');
+                            throw new Error('Tipo de usuário desconhecido: ' + userRole);
                         }
                     }, 1500);
                 } else {
