@@ -2,7 +2,7 @@ import connection from '../db.js';
 export class ResponsavelRepository {
     async create(data, adminId) {
         console.log('ResponsavelRepository.create - data:', data, 'adminId:', adminId);
-        const query = 'INSERT INTO responsavel (nome, cpf, telefone, email, endereco, cep, rua, numero, complemento, bairro, cidade, estado, enderecoId, senha, rg, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        const query = 'INSERT INTO responsavel (nome, cpf, telefone, email, endereco, cep, rua, numero, complemento, bairro, cidade, estado, senha, rg, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         const params = [
             data.nome,
             data.cpf,
@@ -16,7 +16,6 @@ export class ResponsavelRepository {
             data.bairro || null,
             data.cidade || null,
             data.estado || null,
-            data.enderecoId || null,
             data.senha,
             data.rg || null,
             adminId

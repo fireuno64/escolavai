@@ -1,12 +1,16 @@
 # 🔧 Comandos para Servidor Remoto - Escola Vai
 
-## 🚨 Correção de Erro no Cadastro de Escolas
+## 🚨 Correções de Erros no Cadastro
 
-Se você está recebendo o erro **"Unknown column 'admin_id' in 'field list'"** ao tentar cadastrar uma escola, siga estes passos:
+### ✅ Cadastro de Escolas - RESOLVIDO
+Se você estava recebendo o erro **"Unknown column 'admin_id' in 'field list'"** ao tentar cadastrar uma escola, este problema já foi corrigido seguindo os passos abaixo.
+
+### ✅ Cadastro de Responsáveis - RESOLVIDO
+Se você estava recebendo o erro **"Unknown column 'enderecoId' in 'field list'"** ao tentar cadastrar um responsável, este problema foi corrigido. Basta seguir os passos de atualização abaixo.
 
 ---
 
-## 📋 Passo a Passo
+## 📋 Passo a Passo para Atualizar o Servidor
 
 ### 1️⃣ Conectar ao Servidor via SSH
 
