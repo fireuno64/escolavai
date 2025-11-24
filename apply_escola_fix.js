@@ -14,17 +14,38 @@ async function applyFix() {
         const migrationPath = path.join(__dirname, 'database/migrations/add_contato_to_escola.sql');
         const sql = fs.readFileSync(migrationPath, 'utf8');
 
-        console.log('📝 Executing SQL:', sql);
+        // Split by semicolon and filter out comments and empty lines
+        const statements = sql
+            .split(';')
+            .map(s => s.trim())
+            .filter(s => s && !s.startsWith('--'));
 
-        await connection.query(sql);
+        let addedCount = 0;
+        let skippedCount = 0;
 
-        console.log('✅ Fix applied successfully! Column "contato" added.');
-    } catch (error) {
-        if (error.code === 'ER_DUP_FIELDNAME') {
-            console.log('⚠️ Column "contato" already exists. No changes needed.');
-        } else {
-            console.error('❌ Error applying fix:', error);
+        for (const statement of statements) {
+            try {
+                console.log('📝 Executing:', statement.substring(0, 50) + '...');
+                await connection.query(statement);
+                addedCount++;
+                console.log('   ✅ Success');
+            } catch (error) {
+                if (error.code === 'ER_DUP_FIELDNAME') {
+                    const match = statement.match(/ADD COLUMN (\w+)/);
+                    const columnName = match ? match[1] : 'unknown';
+                    console.log(`   ⚠️  Column "${columnName}" already exists, skipping`);
+                    skippedCount++;
+                } else {
+                    throw error;
+                }
+            }
         }
+
+        console.log('\n✅ Migration completed!');
+        console.log(`   Added: ${addedCount} column(s)`);
+        console.log(`   Skipped: ${skippedCount} column(s) (already exist)`);
+    } catch (error) {
+        console.error('❌ Error applying fix:', error.message);
     } finally {
         process.exit();
     }
