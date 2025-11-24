@@ -128,8 +128,8 @@ export class AuthController {
             // Check for first access (incomplete profile)
             let isFirstAccess = false;
             if (userRole === 'admin' || userRole === 'master') {
-                // Consider first access if address is missing
-                if (!user.endereco || user.endereco.trim() === '') {
+                // Consider first access if address is missing (check rua since form uses structured address)
+                if (!user.rua || user.rua.trim() === '') {
                     isFirstAccess = true;
                 }
             }
