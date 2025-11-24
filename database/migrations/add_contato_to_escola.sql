@@ -1,0 +1,1 @@
+ALTER TABLE escola ADD COLUMN contato VARCHAR(255) NULL AFTER estado;

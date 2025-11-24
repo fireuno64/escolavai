@@ -80,8 +80,11 @@ export class AdminUserController {
             let params = [nome, email];
 
             if (table === 'admin') {
-                query += ', role = ?';
-                params.push(role);
+                // Only update role if explicitly provided
+                if (role !== undefined) {
+                    query += ', role = ?';
+                    params.push(role);
+                }
 
                 // Add cpf_cnpj and endereco for admin table
                 if (cpf_cnpj !== undefined) {
