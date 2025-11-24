@@ -8,6 +8,9 @@ Se você estava recebendo o erro **"Unknown column 'admin_id' in 'field list'"**
 ### ✅ Cadastro de Responsáveis - RESOLVIDO
 Se você estava recebendo o erro **"Unknown column 'enderecoId' in 'field list'"** ao tentar cadastrar um responsável, este problema foi corrigido. Basta seguir os passos de atualização abaixo.
 
+### 🔍 Erros 500 em Pagamentos/Crianças
+Se você está recebendo erros 500 ao carregar pagamentos ou gerar PDF de contratos, veja o guia: [`DIAGNOSTICO_ERROS.md`](file:///d:/ADS4NB/Transporte_Escolar_2025/DIAGNOSTICO_ERROS.md)
+
 ---
 
 ## 📋 Passo a Passo para Atualizar o Servidor
@@ -42,15 +45,25 @@ git pull
 
 ### 4️⃣ Executar o Script de Migração do Banco de Dados
 
+**IMPORTANTE**: Execute AMBOS os scripts de migração:
+
 ```bash
+# 1. Migração da tabela escola (se ainda não executou)
 mysql -u escolavai_user -p escolavai_db < database/migrations/fix_escola_schema_remote.sql
+
+# 2. Migração completa (crianca, responsavel, pagamento)
+mysql -u escolavai_user -p escolavai_db < database/migrations/fix_complete_schema_remote.sql
 ```
 
 **O que vai acontecer:**
 - O sistema vai pedir a senha do banco de dados
 - Digite a senha e pressione Enter
-- O script vai adicionar as colunas faltantes na tabela `escola`
-- Ao final, mostrará a estrutura atualizada da tabela
+- O script vai:
+  - ✅ Renomear `dataNascimento` para `data_nascimento` na tabela `crianca`
+  - ✅ Adicionar coluna `enderecoId` na tabela `responsavel`
+  - ✅ Adicionar colunas `criancaId`, `contrato_id`, `admin_id` na tabela `pagamento`
+  - ✅ Criar foreign keys necessárias
+- Ao final, mostrará a estrutura atualizada de todas as tabelas
 
 ---
 
