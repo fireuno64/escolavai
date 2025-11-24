@@ -122,6 +122,9 @@ EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 -- Foreign key for pagamento.contrato_id
+-- SKIPPED: contrato table does not exist on remote server
+-- Uncomment this section after creating the contrato table
+/*
 SET @fk_exists = 0;
 SELECT COUNT(*) INTO @fk_exists 
 FROM information_schema.TABLE_CONSTRAINTS 
@@ -135,6 +138,7 @@ SET @query = IF(@fk_exists = 0,
 PREPARE stmt FROM @query;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+*/
 
 -- Foreign key for pagamento.admin_id
 SET @fk_exists = 0;
